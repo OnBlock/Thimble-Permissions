@@ -53,11 +53,13 @@ public class PermissionMap {
         permissionMap.forEach((uuid, manager) -> jsonObject.set(uuid.toString(), manager.toJson()));
         return jsonObject;
     }
-    public Map<String, Permission> treeExistingPermissions() {
+    public Map<String, Permission> treeExistingPermissions(List<Permission> permissions) {
         Map<String, Permission> map = new HashMap<>();
         for (Permission permission : permissions) {
-            
+            map.put(permission.toString(), permission);
+            map.putAll(treeExistingPermissions(permission.getChildren()));
         }
+        return map;
     }
     protected void loadBlankPermissionTree(DefaultedJsonObject tree) {
         for (Map.Entry<String, JsonElement> entry : tree.entrySet()) {
