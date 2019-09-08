@@ -1,6 +1,7 @@
 package io.github.indicode.fabric.permissions;
 
 import blue.endless.jankson.JsonElement;
+import blue.endless.jankson.JsonObject;
 import com.google.common.collect.ImmutableMap;
 import io.github.indicode.fabric.tinyconfig.DefaultedJsonObject;
 
@@ -21,6 +22,9 @@ public class PermissionMap {
         return manager;
     }
     public void addGroup(Permission permission) {
+        while (permission.parent != null) {
+            permission = permission.parent;
+        }
         if (!permissions.contains(permission)) {
             for (Iterator<Permission> iterator = permissions.iterator(); iterator.hasNext(); ) {
                 Permission value = iterator.next();
@@ -66,6 +70,7 @@ public class PermissionMap {
     protected Map<String, Permission> loadBlankPermissionTree(DefaultedJsonObject tree, Map<String, Permission> existingPermissions, String nestLevel, Permission parent) {
         Map<String, Permission> keyMap = new HashMap<>();
         for (Map.Entry<String, JsonElement> entry : tree.entrySet()) {
+            if (!(entry.getValue() instanceof JsonObject)) continue;
             String id = nestLevel == null ? entry.getKey() : nestLevel + "." + entry.getKey();
             Permission permission;
             if (!existingPermissions.containsKey(id)) {
@@ -74,7 +79,7 @@ public class PermissionMap {
                 permission = existingPermissions.get(id);
             }
             keyMap.put(id, permission);
-            keyMap.putAll(loadBlankPermissionTree((DefaultedJsonObject) entry.getValue(), keyMap, id, permission));
+            keyMap.putAll(loadBlankPermissionTree(DefaultedJsonObject.of((JsonObject) entry.getValue()), keyMap, id, permission));
         }
         return keyMap;
     }

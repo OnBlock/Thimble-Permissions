@@ -70,23 +70,18 @@ public class Permission {
         if (inheritance.isEmpty() && children.isEmpty()) return JsonNull.INSTANCE;
         DefaultedJsonObject jsonObject = new DefaultedJsonObject();
         if (!inheritance.isEmpty()) {
-            DefaultedJsonArray inheritsArray = new DefaultedJsonArray();
-            for (Permission permission : inheritance) {
-                inheritsArray.add(new JsonPrimitive(permission.toString()));
+            if (inheritance.size() == 1) jsonObject.set("inherits", new JsonPrimitive(inheritance.get(0).toString()));
+            else {
+                DefaultedJsonArray inheritsArray = new DefaultedJsonArray();
+                for (Permission permission : inheritance) {
+                    inheritsArray.add(new JsonPrimitive(permission.toString()));
+                }
+                jsonObject.set("inherits", inheritsArray);
             }
-            jsonObject.set("inherits", inheritsArray);
         }
         if (!children.isEmpty()) {
-            if (inheritance.isEmpty()) {
-                for (Permission permission : children) {
-                    jsonObject.set(permission.identifier, permission.toJson());
-                }
-            } else {
-                DefaultedJsonObject childArray = new DefaultedJsonObject();
-                for (Permission permission : children) {
-                    childArray.set(permission.identifier, permission.toJson());
-                }
-                jsonObject.set("children", childArray);
+            for (Permission permission : children) {
+                jsonObject.set(permission.identifier, permission.toJson());
             }
         }
         return jsonObject;
