@@ -1,5 +1,8 @@
 package io.github.indicode.fabric.permissions;
 
+import blue.endless.jankson.JsonElement;
+import blue.endless.jankson.JsonNull;
+import blue.endless.jankson.JsonObject;
 import blue.endless.jankson.JsonPrimitive;
 import io.github.indicode.fabric.tinyconfig.DefaultedJsonArray;
 import io.github.indicode.fabric.tinyconfig.DefaultedJsonObject;
@@ -11,7 +14,7 @@ import java.util.*;
  */
 public class Permission {
     public final String identifier;
-    public final Permission parent;
+    public Permission parent;
     protected ArrayList<Permission> children = new ArrayList<>();
     protected ArrayList<Permission> inheritance = new ArrayList<>();
     public Permission(String identifier) {
@@ -63,7 +66,8 @@ public class Permission {
         }
         return false;
     }
-    public DefaultedJsonObject toJson() {
+    public JsonElement toJson() {
+        if (inheritance.isEmpty() && children.isEmpty()) return JsonNull.INSTANCE;
         DefaultedJsonObject jsonObject = new DefaultedJsonObject();
         if (!inheritance.isEmpty()) {
             DefaultedJsonArray inheritsArray = new DefaultedJsonArray();
@@ -86,6 +90,22 @@ public class Permission {
             }
         }
         return jsonObject;
+    }
+    public void fromJson(JsonElement json, Getter<String, Permission> permissionGetter) {
+        if (json != null && !json.equals(JsonNull.INSTANCE) && json instanceof DefaultedJsonObject) {
+            DefaultedJsonObject jsonObject = (DefaultedJsonObject) json;
+            DefaultedJsonArray inheritanceArray = jsonObject.getArray("inherits", (DefaultedJsonArray) null);
+            DefaultedJsonObject childMap = inheritanceArray == null ? jsonObject.containsKey("children") ? DefaultedJsonObject.of((JsonObject) jsonObject.get("children")) : jsonObject : jsonObject;
+            if (inheritanceArray != null) {
+                for (int i = 0; i < inheritanceArray.size(); i++) {
+                    String name = inheritanceArray.getString(i);
+                    if (name != null) inheritance.add(permissionGetter.get(name));
+                }
+            }
+            for (Map.Entry<String, JsonElement> entry : childMap.entrySet()) {
+
+            }
+        }
     }
     public String toString() {
         String name = identifier;

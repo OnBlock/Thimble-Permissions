@@ -1,11 +1,12 @@
 {
   "required": true,
-  "package": "net.fabricmc.example.mixin",
+  "package": "io.github.indicode.fabric.permissions.mixin",
   "compatibilityLevel": "JAVA_8",
   "mixins": [
+    "ServerCommandSourceMixin",
+    "MinecraftServerMixin"
   ],
   "client": [
-    "ExampleMixin"
   ],
   "injectors": {
     "defaultRequire": 1

@@ -1,12 +1,12 @@
 {
   "schemaVersion": 1,
-  "id": "modid",
+  "id": "thimble",
   "version": "${version}",
 
-  "name": "Example Mod",
-  "description": "This is an example description! Tell everyone what your mod is about!",
+  "name": "Thimble Permissions",
+  "description": "Thimbles exist so you dont prick yourself. This exists so others don't prick you.",
   "authors": [
-    "Me!"
+    "Indicode"
   ],
   "contact": {
     "homepage": "https://fabricmc.net/",
@@ -14,21 +14,21 @@
   },
 
   "license": "CC0-1.0",
-  "icon": "assets/modid/icon.png",
+  "icon": "assets/thimble/icon.png",
 
   "environment": "*",
   "entrypoints": {
     "main": [
-      "net.fabricmc.example.ExampleMod"
+      "io.github.indicode.fabric.permissions.Thimble"
     ]
   },
   "mixins": [
-    "modid.mixins.json"
+    "thimble.mixins.json"
   ],
 
   "depends": {
     "fabricloader": ">=0.4.0",
-    "fabric": "*"
+    "fabric-commands-v0": "*"
   },
   "suggests": {
     "flamingo": "*"
