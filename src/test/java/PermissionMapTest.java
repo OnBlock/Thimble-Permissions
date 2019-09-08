@@ -36,5 +36,21 @@ public class PermissionMapTest {
         readMap2.permissionsFromJson(readMap.permissionsToJson());
         System.out.println(readMap2);
         System.out.println(readMap2.permissionsToJson().toJson(JsonGrammar.STRICT));
+        PermissionMap readMap3 = new PermissionMap();
+        readMap3.permissionsFromJson(readMap2.permissionsToJson());
+        System.out.println(readMap3);
+        System.out.println(readMap3.permissionsToJson().toJson(JsonGrammar.STRICT));
+        PermissionMap readMap4 = new PermissionMap();
+        readMap4.permissionsFromJson(readMap3.permissionsToJson());
+        System.out.println(readMap4);
+        System.out.println(readMap4.permissionsToJson().toJson(JsonGrammar.STRICT));
+        PermissionMap readMap5 = new PermissionMap();
+        readMap5.permissionsFromJson(readMap4.permissionsToJson());
+        System.out.println(readMap5);
+        System.out.println(readMap5.permissionsToJson().toJson(JsonGrammar.STRICT));
+        PermissionMap readMap6 = new PermissionMap();
+        readMap6.permissionsFromJson(readMap5.permissionsToJson());
+        System.out.println(readMap6);
+        System.out.println(readMap6.permissionsToJson().toJson(JsonGrammar.STRICT));
     }
 }

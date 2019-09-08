@@ -1,9 +1,6 @@
 package io.github.indicode.fabric.permissions;
 
-import blue.endless.jankson.JsonArray;
-import blue.endless.jankson.JsonElement;
-import blue.endless.jankson.JsonObject;
-import blue.endless.jankson.JsonPrimitive;
+import blue.endless.jankson.*;
 import com.google.common.collect.ImmutableMap;
 import io.github.indicode.fabric.tinyconfig.DefaultedJsonObject;
 import net.minecraft.util.Pair;
@@ -77,16 +74,26 @@ public class PermissionMap {
     protected Map<String, Pair<Permission, DefaultedJsonObject>> loadBlankPermissionTree(DefaultedJsonObject tree, Map<String, Pair<Permission, DefaultedJsonObject>> existingPermissions, String nestLevel, Permission parent) {
         Map<String, Pair<Permission, DefaultedJsonObject>> keyMap = new HashMap<>();
         for (Map.Entry<String, JsonElement> entry : tree.entrySet()) {
-            if (!(entry.getValue() instanceof JsonObject)) continue;
             String id = nestLevel == null ? entry.getKey() : nestLevel + "." + entry.getKey();
-            Permission permission;
-            if (!existingPermissions.containsKey(id)) {
-                permission = new Permission(entry.getKey(), parent);
-            } else {
-                permission = existingPermissions.get(id).getLeft();
+            System.out.println(id);
+            if (entry.getValue() instanceof JsonObject) {
+                Permission permission;
+                if (!existingPermissions.containsKey(id)) {
+                    permission = new Permission(entry.getKey(), parent);
+                } else {
+                    permission = existingPermissions.get(id).getLeft();
+                }
+                keyMap.put(id, new Pair(permission, entry.getValue()));
+                keyMap.putAll(loadBlankPermissionTree(DefaultedJsonObject.of((JsonObject) entry.getValue()), keyMap, id, permission));
+            } else if (entry.getValue() == null || entry.getValue().equals(JsonNull.INSTANCE)) {
+                Permission permission;
+                if (!existingPermissions.containsKey(id)) {
+                    permission = new Permission(entry.getKey(), parent);
+                } else {
+                    permission = existingPermissions.get(id).getLeft();
+                }
+                keyMap.put(id, new Pair(permission, null));
             }
-            keyMap.put(id, new Pair(permission, entry.getValue()));
-            keyMap.putAll(loadBlankPermissionTree(DefaultedJsonObject.of((JsonObject) entry.getValue()), keyMap, id, permission));
         }
         return keyMap;
     }
@@ -95,6 +102,7 @@ public class PermissionMap {
         mapPermissions(permissions).forEach((key, value) -> existingPermissionMap.put(key, new Pair(value, value.toJson())));
         Map<String, Pair<Permission, DefaultedJsonObject>> permissionMap = loadBlankPermissionTree(tree, existingPermissionMap, null, null);
         for (Map.Entry<String, Pair<Permission, DefaultedJsonObject>> entry : permissionMap.entrySet()) {
+            if (entry.getValue().getRight() == null) continue;
             if (entry.getValue().getRight().containsKey("inherits")) {
                 JsonElement inherits = entry.getValue().getRight().get("inherits");
                 List<String> inheritList = new ArrayList<>();
