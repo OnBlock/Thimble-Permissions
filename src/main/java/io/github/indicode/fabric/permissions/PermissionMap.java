@@ -53,18 +53,30 @@ public class PermissionMap {
         permissionMap.forEach((uuid, manager) -> jsonObject.set(uuid.toString(), manager.toJson()));
         return jsonObject;
     }
-    public Map<String, Permission> treeExistingPermissions(List<Permission> permissions) {
+    public ImmutableMap<String, Permission> treeExistingPermissions(List<Permission> permissions) {
+        if (!cacheDirty && cachedPermissionTree != null) return cachedPermissionTree;
         Map<String, Permission> map = new HashMap<>();
         for (Permission permission : permissions) {
             map.put(permission.toString(), permission);
             map.putAll(treeExistingPermissions(permission.getChildren()));
         }
-        return map;
+        cachedPermissionTree = ImmutableMap.copyOf(map);
+        return cachedPermissionTree;
     }
-    protected void loadBlankPermissionTree(DefaultedJsonObject tree) {
+    protected Map<String, Permission> loadBlankPermissionTree(DefaultedJsonObject tree, Map<String, Permission> existingPermissions, String nestLevel, Permission parent) {
+        Map<String, Permission> keyMap = new HashMap<>();
         for (Map.Entry<String, JsonElement> entry : tree.entrySet()) {
-
+            String id = nestLevel == null ? entry.getKey() : nestLevel + "." + entry.getKey();
+            Permission permission;
+            if (!existingPermissions.containsKey(id)) {
+                permission = new Permission(entry.getKey(), parent);
+            } else {
+                permission = existingPermissions.get(id);
+            }
+            keyMap.put(id, permission);
+            keyMap.putAll(loadBlankPermissionTree((DefaultedJsonObject) entry.getValue(), keyMap, id, permission));
         }
+        return keyMap;
     }
     //TODO: load the permission tree first, then deal with inheritance
     /*public void permissionsFromJson(DefaultedJsonObject json) {
