@@ -70,11 +70,11 @@ public class Permission {
         if (inheritance.isEmpty() && children.isEmpty()) return JsonNull.INSTANCE;
         DefaultedJsonObject jsonObject = new DefaultedJsonObject();
         if (!inheritance.isEmpty()) {
-            if (inheritance.size() == 1) jsonObject.set("inherits", new JsonPrimitive(inheritance.get(0).toString()));
+            if (inheritance.size() == 1) jsonObject.set("inherits", new JsonPrimitive(inheritance.get(0).getFullIdentifier()));
             else {
                 DefaultedJsonArray inheritsArray = new DefaultedJsonArray();
                 for (Permission permission : inheritance) {
-                    inheritsArray.add(new JsonPrimitive(permission.toString()));
+                    inheritsArray.add(new JsonPrimitive(permission.getFullIdentifier()));
                 }
                 jsonObject.set("inherits", inheritsArray);
             }
@@ -102,7 +102,7 @@ public class Permission {
             }
         }
     }
-    public String toString() {
+    public String getFullIdentifier() {
         String name = identifier;
         Permission permission = this;
         while (permission.parent != null) {
