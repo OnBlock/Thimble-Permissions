@@ -1,37 +1,69 @@
 package io.github.indicode.fabric.permissions;
 
+import blue.endless.jankson.JsonElement;
+import blue.endless.jankson.JsonPrimitive;
+import io.github.indicode.fabric.tinyconfig.DefaultedJsonArray;
+import io.github.indicode.fabric.tinyconfig.DefaultedJsonObject;
+
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 /**
  * @author Indigo Amann
  */
 public class PlayerPermissionManager {
-    protected List<String> addedPermissions = new ArrayList<>();
-    protected List<String> removedPermissions = new ArrayList<>();
-    protected List<Group> groups = new ArrayList<>();
-    public boolean hasPermission(String permission) {
+    protected List<Permission> permissions = new ArrayList<>();
+    protected List<Permission> removedPermissions = new ArrayList<>();
+    public PermissionMap permissionMap;
+    public PlayerPermissionManager(PermissionMap permissionMap) {
+        this.permissionMap = permissionMap;
+    }
+    public boolean hasPermission(Permission permission) {
         if (removedPermissions.contains(permission)) return false;
-        else if (addedPermissions.contains(permission)) return true;
-        else return groupHasPermission(permission) != null;
-    }
-    public Group groupHasPermission(String permission) {
-        for (Group group : groups) {
-            if (group.hasPermission(permission)) return group;
+        else for (Permission removedPermission : removedPermissions) {
+            if (permission.isDescendantOf(removedPermission)) return false;
+            else if (permissions.contains(permission)) return true;
+            else for (Permission here : permissions) {
+                if (permission.isDescendantOf(here)) return true;
+            }
         }
-        return null;
+        return false;
     }
-    public void permission(String permission) {
-        if (removedPermissions.contains(permission)) removedPermissions.remove(permission);
-        if (!hasPermission(permission)) addedPermissions.add(permission);
-    }
-    public void removePermission(String permission) {
+    public PlayerPermissionManager removePermission(Permission permission) {
         if (!removedPermissions.contains(permission)) {
-            if (addedPermissions.contains(permission)) addedPermissions.remove(permission);
-            else removedPermissions.add(permission);
+            permissions.remove(permission);
+            removedPermissions.add(permission);
         }
+        return this;
     }
-    public void group(Group group) {
-        if (!groups.contains(group)) groups.add(group);
+    public PlayerPermissionManager permission(Permission permission) {
+        if (permissions.contains(permission)) return this;
+        for (Iterator<Permission> iterator = permissions.iterator(); iterator.hasNext(); ) {
+            Permission here = iterator.next();
+            if (permission.isDescendantOf(here)) return this;
+            if (here.isDescendantOf(permission)) iterator.remove();
+        }
+        this.permissions.add(permission);
+        this.permissionMap.addGroup(permission);
+        return this;
+    }
+    public JsonElement toJson() {
+        if (removedPermissions.isEmpty()) {
+            DefaultedJsonArray permArray = new DefaultedJsonArray();
+            permissions.forEach(permission -> permArray.add(new JsonPrimitive(permission.toString())));
+            return permArray;
+        } else {
+            DefaultedJsonObject jsonObject = new DefaultedJsonObject();
+            DefaultedJsonArray rpermArray = new DefaultedJsonArray();
+            removedPermissions.forEach(perm -> rpermArray.add(new JsonPrimitive(perm)));
+            jsonObject.set("removed_permissions", rpermArray);
+            if (!permissions.isEmpty()) {
+                DefaultedJsonArray groupArray = new DefaultedJsonArray();
+                permissions.forEach(permission -> groupArray.add(new JsonPrimitive(permission.toString())));
+                jsonObject.set("permissions", groupArray);
+            }
+            return jsonObject;
+        }
     }
 }
