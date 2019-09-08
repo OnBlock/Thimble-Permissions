@@ -111,4 +111,8 @@ public class Permission {
         }
         return name;
     }
+    @Override
+    public String toString() {
+        return "Permission[id=" + getFullIdentifier() + ", inherits=" + inheritance.toString() + ", children=" + children.toString() + "]";
+    }
 }

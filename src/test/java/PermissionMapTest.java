@@ -3,6 +3,7 @@ import io.github.indicode.fabric.permissions.Permission;
 import io.github.indicode.fabric.permissions.PermissionMap;
 import io.github.indicode.fabric.permissions.PlayerPermissionManager;
 
+import java.util.HashMap;
 import java.util.UUID;
 
 /**
@@ -22,9 +23,18 @@ public class PermissionMapTest {
 
         Permission child1_a_subperm_d = new Permission("subperm_d", child1_a);
         Permission child1_b_subperm_e = new Permission("subperm_e", child1_a);
-        map.getPlayer(UUID.randomUUID()).permission(child1_a_subperm_d).permission(child2_z);
-        map.getPlayer(UUID.randomUUID()).permission(child1_b).permission(child2);
-        map.getPlayer(UUID.randomUUID()).permission(child1_a_subperm_d).permission(child1);
-        System.out.println(map.toJson().toJson(JsonGrammar.STRICT));
+        //map.getPlayer(UUID.randomUUID()).permission(child1_a_subperm_d).permission(child2_z);
+        //map.getPlayer(UUID.randomUUID()).permission(child1_b).permission(child2);
+        //map.getPlayer(UUID.randomUUID()).permission(child1_a_subperm_d).permission(child1);
+        map.addGroup(parent);
+        System.out.println(map.permissionsToJson().toJson(JsonGrammar.STRICT));
+        PermissionMap readMap = new PermissionMap();
+        readMap.permissionsFromJson(map.permissionsToJson());
+        System.out.println(readMap);
+        System.out.println(readMap.permissionsToJson().toJson(JsonGrammar.STRICT));
+        PermissionMap readMap2 = new PermissionMap();
+        readMap2.permissionsFromJson(readMap.permissionsToJson());
+        System.out.println(readMap2);
+        System.out.println(readMap2.permissionsToJson().toJson(JsonGrammar.STRICT));
     }
 }

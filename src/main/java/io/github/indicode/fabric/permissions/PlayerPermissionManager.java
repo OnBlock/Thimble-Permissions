@@ -51,7 +51,7 @@ public class PlayerPermissionManager {
     public JsonElement toJson() {
         if (removedPermissions.isEmpty()) {
             DefaultedJsonArray permArray = new DefaultedJsonArray();
-            permissions.forEach(permission -> permArray.add(new JsonPrimitive(permission.toString())));
+            permissions.forEach(permission -> permArray.add(new JsonPrimitive(permission.getFullIdentifier())));
             return permArray;
         } else {
             DefaultedJsonObject jsonObject = new DefaultedJsonObject();
@@ -60,10 +60,14 @@ public class PlayerPermissionManager {
             jsonObject.set("removed_permissions", rpermArray);
             if (!permissions.isEmpty()) {
                 DefaultedJsonArray groupArray = new DefaultedJsonArray();
-                permissions.forEach(permission -> groupArray.add(new JsonPrimitive(permission.toString())));
+                permissions.forEach(permission -> groupArray.add(new JsonPrimitive(permission.getFullIdentifier())));
                 jsonObject.set("permissions", groupArray);
             }
             return jsonObject;
         }
+    }
+    @Override
+    public String toString() {
+        return permissions.toString();
     }
 }

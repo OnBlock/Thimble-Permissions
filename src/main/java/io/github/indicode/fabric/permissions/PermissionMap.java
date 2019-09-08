@@ -60,7 +60,7 @@ public class PermissionMap {
     }
     public DefaultedJsonObject playersToJson() {
         DefaultedJsonObject jsonObject = new DefaultedJsonObject();
-        permissionMap.forEach((uuid, manager) -> jsonObject.set(uuid.getFullIdentifier(), manager.toJson()));
+        permissionMap.forEach((uuid, manager) -> jsonObject.set(uuid.toString(), manager.toJson()));
         return jsonObject;
     }
     public ImmutableMap<String, Permission> mapPermissions(List<Permission> permissions) {
@@ -74,7 +74,7 @@ public class PermissionMap {
         cacheDirty = false;
         return cachedPermissionTree;
     }
-    protected Map<String, Pair<Permission, DefaultedJsonObject>> loadBlankPermissionTree(DefaultedJsonObject tree, Map<String, Pair<Permission, DefaultedJsonObject> existingPermissions, String nestLevel, Permission parent) {
+    protected Map<String, Pair<Permission, DefaultedJsonObject>> loadBlankPermissionTree(DefaultedJsonObject tree, Map<String, Pair<Permission, DefaultedJsonObject>> existingPermissions, String nestLevel, Permission parent) {
         Map<String, Pair<Permission, DefaultedJsonObject>> keyMap = new HashMap<>();
         for (Map.Entry<String, JsonElement> entry : tree.entrySet()) {
             if (!(entry.getValue() instanceof JsonObject)) continue;
@@ -104,11 +104,15 @@ public class PermissionMap {
                     inheritList.add(((JsonPrimitive) inherits).asString());
                 }
                 for (String inherit : inheritList) {
-                    entry.getValue().getLeft().inherit(permissionMap.get(inherit).getLeft());
+                    if (permissionMap.containsKey(inherit)) entry.getValue().getLeft().inherit(permissionMap.get(inherit).getLeft());
                 }
             }
         }
         permissionMap.values().forEach(pair -> addGroup(pair.getLeft()));
+    }
+    @Override
+    public String toString() {
+        return permissions.toString();
     }
     //TODO: load the permission tree first, then deal with inheritance
     /*public void permissionsFromJson(DefaultedJsonObject json) {
