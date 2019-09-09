@@ -13,8 +13,6 @@ import java.util.*;
 public class PermissionMap {
     protected Map<UUID, PlayerPermissionManager> permissionMap = new HashMap<>();
     protected List<Permission> permissions = new ArrayList<>();
-    protected ImmutableMap<String, Permission> cachedPermissionTree = null;
-    protected boolean cacheDirty = true;
     public PlayerPermissionManager getPlayer(UUID uuid) {
         if (permissionMap.containsKey(uuid)) return permissionMap.get(uuid);
         PlayerPermissionManager manager = new PlayerPermissionManager(this);
@@ -22,6 +20,7 @@ public class PermissionMap {
         return manager;
     }
     public void addGroup(Permission permission) {
+        if (permission == null) return;
         while (permission.parent != null) {
             permission = permission.parent;
         }
@@ -33,14 +32,43 @@ public class PermissionMap {
             }
             permissions.add(permission);
             permission.getInheritance().forEach(this::addGroup);
-            cacheDirty = true;
         }
     }
     public Permission getPermission(String name) {
-        return mapPermissions(permissions).get(name);
+        Map<String, Permission> map = mapPermissions(permissions);
+        if (map.containsKey(name)) return map.get(name);
+        else {
+            String[] nameSplit = name.split("[.]");
+            String lastPerm = null;
+            int i;
+            for (i = nameSplit.length - 1; i >= 0; i--) {
+                String nameSlice = "";
+                for (int j = 0; j < i; j++) {
+                    nameSlice += (j == 0 ? "" : ".") + nameSplit[j];
+                }
+                if (map.containsKey(nameSlice)) {
+                    lastPerm = nameSlice;
+                    break;
+                }
+            }
+            Permission current;
+            if (lastPerm == null) {
+                current = new Permission(nameSplit[0]);
+                addGroup(current);
+                i = 1;
+            } else current = map.get(lastPerm);
+            while(i < nameSplit.length) {
+                current = new Permission(nameSplit[i], current);
+                i++;
+            }
+            return current;
+        }
     }
     public boolean hasPermission(Permission permission, UUID player) {
         return getPlayer(player).hasPermission(permission);
+    }
+    public boolean hasPermission(String permission, UUID player) {
+        return getPlayer(player).hasPermission(getPermission(permission));
     }
     public DefaultedJsonObject toJson() {
         DefaultedJsonObject jsonObject = new DefaultedJsonObject();
@@ -60,22 +88,18 @@ public class PermissionMap {
         permissionMap.forEach((uuid, manager) -> jsonObject.set(uuid.toString(), manager.toJson()));
         return jsonObject;
     }
-    public ImmutableMap<String, Permission> mapPermissions(List<Permission> permissions) {
-        if (!cacheDirty && cachedPermissionTree != null) return cachedPermissionTree;
+    public Map<String, Permission> mapPermissions(List<Permission> permissions) {
         Map<String, Permission> map = new HashMap<>();
         for (Permission permission : permissions) {
             map.put(permission.getFullIdentifier(), permission);
             map.putAll(mapPermissions(permission.getChildren()));
         }
-        cachedPermissionTree = ImmutableMap.copyOf(map);
-        cacheDirty = false;
-        return cachedPermissionTree;
+        return map;
     }
     protected Map<String, Pair<Permission, DefaultedJsonObject>> loadBlankPermissionTree(DefaultedJsonObject tree, Map<String, Pair<Permission, DefaultedJsonObject>> existingPermissions, String nestLevel, Permission parent) {
         Map<String, Pair<Permission, DefaultedJsonObject>> keyMap = new HashMap<>();
         for (Map.Entry<String, JsonElement> entry : tree.entrySet()) {
             String id = nestLevel == null ? entry.getKey() : nestLevel + "." + entry.getKey();
-            System.out.println(id);
             if (entry.getValue() instanceof JsonObject) {
                 Permission permission;
                 if (!existingPermissions.containsKey(id)) {
@@ -83,7 +107,7 @@ public class PermissionMap {
                 } else {
                     permission = existingPermissions.get(id).getLeft();
                 }
-                keyMap.put(id, new Pair(permission, entry.getValue()));
+                keyMap.put(id, new Pair<>(permission, DefaultedJsonObject.of((JsonObject) entry.getValue())));
                 keyMap.putAll(loadBlankPermissionTree(DefaultedJsonObject.of((JsonObject) entry.getValue()), keyMap, id, permission));
             } else if (entry.getValue() == null || entry.getValue().equals(JsonNull.INSTANCE)) {
                 Permission permission;
@@ -92,17 +116,19 @@ public class PermissionMap {
                 } else {
                     permission = existingPermissions.get(id).getLeft();
                 }
-                keyMap.put(id, new Pair(permission, null));
+                keyMap.put(id, new Pair<>(permission, null));
             }
         }
         return keyMap;
     }
     public void permissionsFromJson(DefaultedJsonObject tree) {
         Map<String, Pair<Permission, DefaultedJsonObject>> existingPermissionMap = new HashMap<>();
-        mapPermissions(permissions).forEach((key, value) -> existingPermissionMap.put(key, new Pair(value, value.toJson())));
+        mapPermissions(permissions).forEach((key, value) -> existingPermissionMap.put(key, new Pair<Permission, DefaultedJsonObject>(value, DefaultedJsonObject.of((JsonObject) value.toJson()))));
         Map<String, Pair<Permission, DefaultedJsonObject>> permissionMap = loadBlankPermissionTree(tree, existingPermissionMap, null, null);
         for (Map.Entry<String, Pair<Permission, DefaultedJsonObject>> entry : permissionMap.entrySet()) {
-            if (entry.getValue().getRight() == null) continue;
+            if (entry.getValue().getRight() == null) {
+                continue;
+            }
             if (entry.getValue().getRight().containsKey("inherits")) {
                 JsonElement inherits = entry.getValue().getRight().get("inherits");
                 List<String> inheritList = new ArrayList<>();
@@ -118,9 +144,29 @@ public class PermissionMap {
         }
         permissionMap.values().forEach(pair -> addGroup(pair.getLeft()));
     }
+    public void playersFromJson(DefaultedJsonObject map) {
+        Map<String, Permission> permissionMap = mapPermissions(permissions);
+        for (Map.Entry<String, JsonElement> entry : map.entrySet()) {
+            JsonElement element = entry.getValue();
+            JsonArray permissions = new JsonArray();
+            JsonArray removedPermissions = new JsonArray();
+            if (element instanceof JsonArray) permissions = (JsonArray) element;
+            else if (element instanceof JsonObject) {
+                if (((JsonObject) element).containsKey("permissions")) permissions = (JsonArray) ((JsonObject) element).get("permissions");
+                if (((JsonObject) element).containsKey("removed_permissions")) removedPermissions = (JsonArray) ((JsonObject) element).get("removed_permissions");
+            }
+            PlayerPermissionManager player = getPlayer(UUID.fromString(entry.getKey()));
+            permissions.forEach(permission -> player.permission(permissionMap.get(((JsonPrimitive)permission).asString())));
+            removedPermissions.forEach(permission -> player.removePermission(permissionMap.get(((JsonPrimitive)permission).asString())));
+        }
+    }
+    public void fromJson(DefaultedJsonObject json) {
+        permissionsFromJson(DefaultedJsonObject.of((JsonObject) json.get("permissions")));
+        playersFromJson(DefaultedJsonObject.of((JsonObject) json.get("players")));
+    }
     @Override
     public String toString() {
-        return permissions.toString();
+        return permissions.toString() + "|" + permissionMap.toString();
     }
     //TODO: load the permission tree first, then deal with inheritance
     /*public void permissionsFromJson(DefaultedJsonObject json) {

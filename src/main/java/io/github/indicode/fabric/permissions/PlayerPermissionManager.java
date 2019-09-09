@@ -38,6 +38,7 @@ public class PlayerPermissionManager {
         return this;
     }
     public PlayerPermissionManager permission(Permission permission) {
+        if (permission == null) return this;
         if (permissions.contains(permission)) return this;
         for (Iterator<Permission> iterator = permissions.iterator(); iterator.hasNext(); ) {
             Permission here = iterator.next();
