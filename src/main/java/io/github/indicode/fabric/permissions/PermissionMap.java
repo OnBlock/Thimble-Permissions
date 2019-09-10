@@ -19,19 +19,28 @@ public class PermissionMap {
         permissionMap.put(uuid, manager);
         return manager;
     }
-    public void addGroup(Permission permission) {
-        if (permission == null) return;
+    public boolean addGroup(Permission permission) {
+        if (permission == null) return  false;
         while (permission.parent != null) {
             permission = permission.parent;
         }
         if (!permissions.contains(permission)) {
             for (Iterator<Permission> iterator = permissions.iterator(); iterator.hasNext(); ) {
                 Permission value = iterator.next();
-                if (permission.isDescendantOf(value)) return;
+                if (permission.isDescendantOf(value)) return false;
                 else if (value.isDescendantOf(permission)) iterator.remove();
             }
             permissions.add(permission);
             permission.getInheritance().forEach(this::addGroup);
+            return true;
+        }
+        return false;
+    }
+    public Permission getPermission(Permission permission) {
+        if (addGroup(permission)) {
+            return permission;
+        } else {
+            return getPermission(permission.getFullIdentifier());
         }
     }
     public Permission getPermission(String name) {

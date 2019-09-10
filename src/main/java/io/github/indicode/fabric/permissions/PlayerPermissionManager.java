@@ -20,13 +20,17 @@ public class PlayerPermissionManager {
         this.permissionMap = permissionMap;
     }
     public boolean hasPermission(Permission permission) {
+        return hasPermission(permission.getFullIdentifier());
+    }
+    public boolean hasPermission(String perm) {
+        Permission permission = permissionMap.getPermission(perm);
         if (removedPermissions.contains(permission)) return false;
         else for (Permission removedPermission : removedPermissions) {
             if (permission.isDescendantOf(removedPermission)) return false;
             else if (permissions.contains(permission)) return true;
             else for (Permission here : permissions) {
-                if (permission.isDescendantOf(here)) return true;
-            }
+                    if (permission.isDescendantOf(here)) return true;
+                }
         }
         return false;
     }
