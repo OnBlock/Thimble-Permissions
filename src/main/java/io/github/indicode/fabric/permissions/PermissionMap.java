@@ -1,6 +1,7 @@
 package io.github.indicode.fabric.permissions;
 
 import blue.endless.jankson.*;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import io.github.indicode.fabric.tinyconfig.DefaultedJsonObject;
 import net.minecraft.util.Pair;
@@ -13,6 +14,9 @@ import java.util.*;
 public class PermissionMap {
     protected Map<UUID, PlayerPermissionManager> permissionMap = new HashMap<>();
     protected List<Permission> permissions = new ArrayList<>();
+    public ImmutableList<Permission> getRegisteredPermissions() {
+        return ImmutableList.copyOf(permissions);
+    }
     public PlayerPermissionManager getPlayer(UUID uuid) {
         if (permissionMap.containsKey(uuid)) return permissionMap.get(uuid);
         PlayerPermissionManager manager = new PlayerPermissionManager(this);
@@ -77,7 +81,7 @@ public class PermissionMap {
         return getPlayer(player).hasPermission(permission);
     }
     public boolean hasPermission(String permission, UUID player) {
-        return getPlayer(player).hasPermission(getPermission(permission));
+        return getPlayer(player).hasPermission(permission);
     }
     public DefaultedJsonObject toJson() {
         DefaultedJsonObject jsonObject = new DefaultedJsonObject();
@@ -165,8 +169,12 @@ public class PermissionMap {
                 if (((JsonObject) element).containsKey("removed_permissions")) removedPermissions = (JsonArray) ((JsonObject) element).get("removed_permissions");
             }
             PlayerPermissionManager player = getPlayer(UUID.fromString(entry.getKey()));
-            permissions.forEach(permission -> player.permission(permissionMap.get(((JsonPrimitive)permission).asString())));
-            removedPermissions.forEach(permission -> player.removePermission(permissionMap.get(((JsonPrimitive)permission).asString())));
+            permissions.forEach(permission -> {
+                if (permission instanceof JsonPrimitive) player.permission(permissionMap.get(((JsonPrimitive) permission).asString()));
+            });
+            removedPermissions.forEach(permission -> {
+                if (permission instanceof JsonPrimitive) player.removePermission(permissionMap.get(((JsonPrimitive) permission).asString()));
+            });
         }
     }
     public void fromJson(DefaultedJsonObject json) {
