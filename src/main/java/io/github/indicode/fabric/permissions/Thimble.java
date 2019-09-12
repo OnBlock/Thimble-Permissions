@@ -4,6 +4,7 @@ import com.google.gson.JsonObject;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.tree.CommandNode;
+import io.github.indicode.fabric.permissions.command.CommandPermission;
 import io.github.indicode.fabric.permissions.command.PermissionArgument;
 import io.github.indicode.fabric.permissions.command.PermissionCommand;
 import net.fabricmc.api.ModInitializer;
@@ -45,7 +46,7 @@ public class Thimble implements ModInitializer {
     public static Permission getCommandPermission(String command) {
         if (COMMAND_PERMISSIONS.containsKey(command)) return COMMAND_PERMISSIONS.get(command);
         else {
-            Permission permission = new Permission(command, PERMISSIONS.getPermission(COMMANDS));
+            CommandPermission permission = new CommandPermission(command);
             COMMAND_PERMISSIONS.put(command, permission);
             return permission;
         }

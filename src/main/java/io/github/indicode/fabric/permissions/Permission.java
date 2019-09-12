@@ -6,6 +6,7 @@ import blue.endless.jankson.JsonObject;
 import blue.endless.jankson.JsonPrimitive;
 import io.github.indicode.fabric.tinyconfig.DefaultedJsonArray;
 import io.github.indicode.fabric.tinyconfig.DefaultedJsonObject;
+import net.minecraft.server.network.ServerPlayerEntity;
 
 import java.util.*;
 
@@ -111,8 +112,18 @@ public class Permission {
         }
         return name;
     }
+    public boolean shouldSave() {
+        return true;
+    }
+    public void onStateChanged(ServerPlayerEntity playerEntity, boolean hasPerm) {
+
+    }
     @Override
     public String toString() {
-        return "Permission[id=" + getFullIdentifier() + ", inherits=" + inheritance.toString() + ", children=" + children.toString() + "]";
+        return super.toString() + "[id=" + getFullIdentifier() + ", inherits=" + inheritance.toString() + ", children=" + children.toString() + "]";
+    }
+    @Override
+    public boolean equals(Object other) {
+        return super.equals(other) || (other instanceof Permission && ((Permission) other).getFullIdentifier().equals(this.getFullIdentifier()));
     }
 }

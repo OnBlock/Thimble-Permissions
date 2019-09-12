@@ -50,6 +50,7 @@ public class MinecraftServerMixin {
     @Inject(method = "loadWorld", at = @At("HEAD"))
     protected void loadPerms(String string_1, String string_2, long long_1, LevelGeneratorType levelGeneratorType_1, JsonElement jsonElement_1, CallbackInfo ci) {
         Thimble.PERMISSIONS = new PermissionMap();
+        Thimble.registerDispatcherCommands(((MinecraftServer)(Object)this).getCommandManager().getDispatcher());
         try {
             Jankson jankson = JanksonFactory.createJankson();
             if (!Thimble.PERMS_FILE.exists()) Thimble.PERMS_FILE.createNewFile();
@@ -60,7 +61,6 @@ public class MinecraftServerMixin {
         } catch (SyntaxError | IOException syntaxError) {
             throw new RuntimeException(syntaxError);
         }
-        Thimble.registerDispatcherCommands(((MinecraftServer)(Object)this).getCommandManager().getDispatcher());
         System.out.println("SERVload");
     }
     @Inject(method = "save", at = @At("HEAD"))

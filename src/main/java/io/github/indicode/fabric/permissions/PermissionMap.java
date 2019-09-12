@@ -92,7 +92,7 @@ public class PermissionMap {
     public DefaultedJsonObject permissionsToJson() {
         DefaultedJsonObject jsonObject = new DefaultedJsonObject();
         for (Permission permission : permissions) {
-            jsonObject.set(permission.identifier, permission.toJson());
+            if (permission.shouldSave()) jsonObject.set(permission.identifier, permission.toJson());
         }
         return jsonObject;
     }
@@ -135,10 +135,15 @@ public class PermissionMap {
         return keyMap;
     }
     public void permissionsFromJson(DefaultedJsonObject tree) {
-        Map<String, Pair<Permission, DefaultedJsonObject>> existingPermissionMap = new HashMap<>();
-        mapPermissions(permissions).forEach((key, value) -> existingPermissionMap.put(key, new Pair<Permission, DefaultedJsonObject>(value, DefaultedJsonObject.of((JsonObject) value.toJson()))));
-        Map<String, Pair<Permission, DefaultedJsonObject>> permissionMap = loadBlankPermissionTree(tree, existingPermissionMap, null, null);
-        for (Map.Entry<String, Pair<Permission, DefaultedJsonObject>> entry : permissionMap.entrySet()) {
+        Map<String, Permission> existingPermissionMap = mapPermissions(permissions);
+        Map<String, Pair<Permission, DefaultedJsonObject>> permissionMap = loadBlankPermissionTree(tree, new HashMap<>(), null, null);
+        for (Iterator<Map.Entry<String, Pair<Permission, DefaultedJsonObject>>> iterator = permissionMap.entrySet().iterator(); iterator.hasNext(); ) {
+            Map.Entry<String, Pair<Permission, DefaultedJsonObject>> entry = iterator.next();
+            if (existingPermissionMap.containsKey(entry.getKey())) {
+                System.out.println(existingPermissionMap.get(entry.getKey()));
+                iterator.remove();
+                continue;
+            }
             if (entry.getValue().getRight() == null) {
                 continue;
             }
@@ -146,12 +151,13 @@ public class PermissionMap {
                 JsonElement inherits = entry.getValue().getRight().get("inherits");
                 List<String> inheritList = new ArrayList<>();
                 if (inherits instanceof JsonArray) {
-                    ((JsonArray) inherits).forEach(it -> inheritList.add(((JsonPrimitive)it).asString()));
+                    ((JsonArray) inherits).forEach(it -> inheritList.add(((JsonPrimitive) it).asString()));
                 } else if (inherits instanceof JsonPrimitive) {
                     inheritList.add(((JsonPrimitive) inherits).asString());
                 }
                 for (String inherit : inheritList) {
-                    if (permissionMap.containsKey(inherit)) entry.getValue().getLeft().inherit(permissionMap.get(inherit).getLeft());
+                    if (permissionMap.containsKey(inherit))
+                        entry.getValue().getLeft().inherit(permissionMap.get(inherit).getLeft());
                 }
             }
         }

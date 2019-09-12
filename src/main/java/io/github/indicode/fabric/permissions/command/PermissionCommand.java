@@ -66,11 +66,13 @@ public class PermissionCommand {
             context.getSource().sendFeedback(new LiteralText(player.getGameProfile().getName() + " " + (enabled ? "has been granted" : "no longer has") + " the permission \"" + permission.getFullIdentifier() + "\"").formatted(Formatting.GREEN), false);
             context.getSource().getMinecraftServer().sendMessage(new LiteralText( "").append(context.getSource().getDisplayName()).append(new LiteralText(" has " + (enabled ? "granted" : "revoked") + " the permission \"" + permission.getFullIdentifier() + "\" for player " + player.getGameProfile().getName())));
             if (!context.getSource().getName().equals(player.getGameProfile().getName())) player.sendMessage(new LiteralText(context.getSource().getName() + " " + (enabled ? "has given you the" : "has taken away your") + " \"" + permission.getFullIdentifier() + "\" permission.").formatted(enabled ? Formatting.GREEN : Formatting.RED));
+            System.out.println(permission);
+            permission.onStateChanged(player, enabled);
         }
         if (enabled) Thimble.PERMISSIONS.getPlayer(player.getGameProfile().getId()).permission(permission);
         else Thimble.PERMISSIONS.getPlayer(player.getGameProfile().getId()).removePermission(permission);
 
-        player.server.getCommandManager().sendCommandTree(player);
+
 
         return 0;
     }
