@@ -8,7 +8,6 @@ import io.github.indicode.fabric.permissions.command.CommandPermission;
 import io.github.indicode.fabric.permissions.command.PermissionArgument;
 import io.github.indicode.fabric.permissions.command.PermissionCommand;
 import net.fabricmc.api.ModInitializer;
-import net.fabricmc.fabric.api.registry.CommandRegistry;
 import net.fabricmc.loader.FabricLoader;
 import net.minecraft.command.arguments.ArgumentTypes;
 import net.minecraft.command.arguments.serialize.ArgumentSerializer;
@@ -40,7 +39,6 @@ public class Thimble implements ModInitializer {
 
     @Override
     public void onInitialize() {
-        CommandRegistry.INSTANCE.register(false, PermissionCommand::register);
         permissionWriters.add(pair -> registerDispatcherCommands(pair.getRight().getCommandManager().getDispatcher()));
     }
     public static Permission getCommandPermission(String command) {

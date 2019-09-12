@@ -92,7 +92,6 @@ public class PermissionMap {
     public DefaultedJsonObject permissionsToJson() {
         DefaultedJsonObject jsonObject = new DefaultedJsonObject();
         for (Permission permission : permissions) {
-            System.out.println("TYPE: " + permission.getClass() + " SAVE:" + permission.shouldSave());
             if (permission.shouldSave()) jsonObject.set(permission.identifier, permission.toJson());
         }
         return jsonObject;
