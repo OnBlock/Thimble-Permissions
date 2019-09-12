@@ -82,7 +82,7 @@ public class Permission {
         }
         if (!children.isEmpty()) {
             for (Permission permission : children) {
-                jsonObject.set(permission.identifier, permission.toJson());
+                if (permission.shouldSave()) jsonObject.set(permission.identifier, permission.toJson());
             }
         }
         return jsonObject;
@@ -120,7 +120,7 @@ public class Permission {
     }
     @Override
     public String toString() {
-        return super.toString() + "[id=" + getFullIdentifier() + ", inherits=" + inheritance.toString() + ", children=" + children.toString() + "]";
+        return super.toString() + "[id=" + getFullIdentifier() + ", inherits=" + inheritance.toString() + /*", children=" + children.toString() + */"]";
     }
     @Override
     public boolean equals(Object other) {

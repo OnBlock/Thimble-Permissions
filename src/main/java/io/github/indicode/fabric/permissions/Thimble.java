@@ -13,8 +13,10 @@ import net.fabricmc.loader.FabricLoader;
 import net.minecraft.command.arguments.ArgumentTypes;
 import net.minecraft.command.arguments.serialize.ArgumentSerializer;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.util.PacketByteBuf;
+import net.minecraft.util.Pair;
 
 import java.io.File;
 import java.lang.reflect.Array;
@@ -32,16 +34,14 @@ public class Thimble implements ModInitializer {
     public static final File PERMS_FILE = new File(FabricLoader.INSTANCE.getGameDirectory().getPath() + "/permissions.json");
     public static final File PERMS_DATA_FILE = new File(FabricLoader.INSTANCE.getGameDirectory().getPath() + "/permissions_dat.json");
     public static PermissionMap PERMISSIONS = new PermissionMap();
-    private static final List<Getter<String, Permission>> permissionReaders = new ArrayList<>();
+    public static final List<Consumer<Pair<PermissionMap, MinecraftServer>>> permissionWriters = new ArrayList<>();
     private static final Map<String, Permission> COMMAND_PERMISSIONS = new HashMap<>();
     public static final String COMMANDS = "minecraft.command";
 
     @Override
     public void onInitialize() {
         CommandRegistry.INSTANCE.register(false, PermissionCommand::register);
-    }
-    public static void onPermissionsRead(Getter<String, Permission> permissionReader) {
-        permissionReaders.add(permissionReader);
+        permissionWriters.add(pair -> registerDispatcherCommands(pair.getRight().getCommandManager().getDispatcher()));
     }
     public static Permission getCommandPermission(String command) {
         if (COMMAND_PERMISSIONS.containsKey(command)) return COMMAND_PERMISSIONS.get(command);

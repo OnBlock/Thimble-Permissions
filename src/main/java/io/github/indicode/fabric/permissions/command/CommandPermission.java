@@ -13,10 +13,12 @@ public class CommandPermission extends Permission {
     }
     @Override
     public boolean shouldSave() {
+        System.out.println("Dont save!");
         return false;
     }
     @Override
     public void onStateChanged(ServerPlayerEntity player, boolean hasPerm) {
+        System.out.println("updating command perm");
         player.server.getCommandManager().sendCommandTree(player);
     }
 }

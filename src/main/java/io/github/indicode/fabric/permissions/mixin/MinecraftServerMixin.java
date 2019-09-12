@@ -26,6 +26,7 @@ import net.minecraft.server.WorldGenerationProgressListenerFactory;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.dedicated.MinecraftDedicatedServer;
+import net.minecraft.util.Pair;
 import net.minecraft.util.UserCache;
 import net.minecraft.world.level.LevelGeneratorType;
 import org.lwjgl.system.CallbackI;
@@ -50,7 +51,8 @@ public class MinecraftServerMixin {
     @Inject(method = "loadWorld", at = @At("HEAD"))
     protected void loadPerms(String string_1, String string_2, long long_1, LevelGeneratorType levelGeneratorType_1, JsonElement jsonElement_1, CallbackInfo ci) {
         Thimble.PERMISSIONS = new PermissionMap();
-        Thimble.registerDispatcherCommands(((MinecraftServer)(Object)this).getCommandManager().getDispatcher());
+        //Thimble.registerDispatcherCommands(((MinecraftServer)(Object)this).getCommandManager().getDispatcher());
+        Thimble.permissionWriters.forEach(consumer -> consumer.accept(new Pair<>(Thimble.PERMISSIONS, ((MinecraftServer)(Object)this))));
         try {
             Jankson jankson = JanksonFactory.createJankson();
             if (!Thimble.PERMS_FILE.exists()) Thimble.PERMS_FILE.createNewFile();
@@ -61,6 +63,7 @@ public class MinecraftServerMixin {
         } catch (SyntaxError | IOException syntaxError) {
             throw new RuntimeException(syntaxError);
         }
+        System.out.println(Thimble.PERMISSIONS.mapPermissions(Thimble.PERMISSIONS.getRegisteredPermissions()));
         System.out.println("SERVload");
     }
     @Inject(method = "save", at = @At("HEAD"))
