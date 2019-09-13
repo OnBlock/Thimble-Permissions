@@ -36,7 +36,6 @@ public class PermissionArgument implements ArgumentType<Permission> {
     @Override
     public <S> CompletableFuture<Suggestions> listSuggestions(CommandContext<S> context, SuggestionsBuilder builder) {
         permissions.get().mapPermissions(permissions.get().getRegisteredPermissions()).keySet().forEach(it -> {
-            System.out.println(builder.getRemaining());
             if (it.startsWith(builder.getRemaining())) builder.suggest(it);
         });
         return builder.buildFuture();

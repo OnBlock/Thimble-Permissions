@@ -98,7 +98,9 @@ public class PermissionMap {
     }
     public DefaultedJsonObject playersToJson() {
         DefaultedJsonObject jsonObject = new DefaultedJsonObject();
-        permissionMap.forEach((uuid, manager) -> jsonObject.set(uuid.toString(), manager.toJson()));
+        permissionMap.forEach((uuid, manager) -> {
+            jsonObject.set(uuid.toString(), manager.toJson());
+        });
         return jsonObject;
     }
     public Map<String, Permission> mapPermissions(List<Permission> permissions) {
@@ -140,7 +142,6 @@ public class PermissionMap {
         for (Iterator<Map.Entry<String, Pair<Permission, DefaultedJsonObject>>> iterator = permissionMap.entrySet().iterator(); iterator.hasNext(); ) {
             Map.Entry<String, Pair<Permission, DefaultedJsonObject>> entry = iterator.next();
             if (existingPermissionMap.containsKey(entry.getKey())) {
-                System.out.println(existingPermissionMap.get(entry.getKey()));
                 iterator.remove();
                 continue;
             }
