@@ -83,6 +83,9 @@ public class PermissionMap {
     public boolean hasPermission(String permission, UUID player) {
         return getPlayer(player).hasPermission(permission);
     }
+    public boolean hasPermissionOrChild(String permission, UUID player) {
+        return getPlayer(player).hasPermissionOrChild(permission);
+    }
     public DefaultedJsonObject toJson() {
         DefaultedJsonObject jsonObject = new DefaultedJsonObject();
         jsonObject.set("permissions", permissionsToJson());

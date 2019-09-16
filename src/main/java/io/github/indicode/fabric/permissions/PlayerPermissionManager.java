@@ -34,6 +34,18 @@ public class PlayerPermissionManager {
         }
         return false;
     }
+    public boolean hasPermissionOrChild(String perm) {
+        Permission permission = permissionMap.getPermission(perm);
+        if (removedPermissions.contains(permission)) return false;
+        else for (Permission removedPermission : removedPermissions) {
+            if (permission.isDescendantOf(removedPermission)) return false;
+        }
+        if (permissions.contains(permission)) return  true;
+        for (Permission permission1: permissions) {
+            if (permission.hasPermission(permission1)) return true;
+        }
+        return false;
+    }
     public PlayerPermissionManager removePermission(Permission permission) {
         if (permissions.contains(permission)) permissions.remove(permission);
         else if (!removedPermissions.contains(permission)) {
