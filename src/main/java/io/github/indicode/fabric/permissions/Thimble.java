@@ -69,4 +69,12 @@ public class Thimble implements ModInitializer {
             }
         }
     }
+    public static boolean hasPermissionOrOp(ServerCommandSource source, String permission, int opLevel) {
+        if(source.hasPermissionLevel(opLevel)) return true;
+        try {
+            return Thimble.PERMISSIONS.hasPermission(permission, source.getPlayer().getGameProfile().getId());
+        } catch (CommandSyntaxException e) {
+            return false;
+        }
+    }
 }
