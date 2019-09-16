@@ -17,8 +17,6 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.LiteralText;
 import net.minecraft.util.Formatting;
 
-import javax.naming.event.EventDirContext;
-import javax.xml.transform.Source;
 
 /**
  * @author Indigo Amann
