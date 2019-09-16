@@ -42,6 +42,7 @@ public class PlayerPermissionManager {
         }
         if (permissions.contains(permission)) return  true;
         for (Permission permission1: permissions) {
+            if (permission1.hasPermission(permission))
             if (permission.hasPermission(permission1)) return true;
         }
         return false;
