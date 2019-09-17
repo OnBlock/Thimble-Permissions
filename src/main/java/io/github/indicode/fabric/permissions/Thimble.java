@@ -5,7 +5,6 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.tree.CommandNode;
 import io.github.indicode.fabric.permissions.command.CommandPermission;
-import io.github.indicode.fabric.permissions.command.PermissionArgument;
 import io.github.indicode.fabric.permissions.command.PermissionCommand;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.loader.FabricLoader;
@@ -14,6 +13,7 @@ import net.minecraft.command.arguments.serialize.ArgumentSerializer;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.command.ServerCommandSource;
+import net.minecraft.text.Text;
 import net.minecraft.util.PacketByteBuf;
 import net.minecraft.util.Pair;
 
@@ -85,4 +85,5 @@ public class Thimble implements ModInitializer {
             return false;
         }
     }
+
 }
