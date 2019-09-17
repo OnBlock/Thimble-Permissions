@@ -8,6 +8,9 @@ import net.minecraft.server.network.ServerPlayerEntity;
  * @author Indigo Amann
  */
 public class CommandPermission extends Permission {
+    public CommandPermission(String command, Permission parent) {
+        super(command, parent);
+    }
     public CommandPermission(String command) {
         super(command, Thimble.PERMISSIONS.getPermission(Thimble.COMMANDS));
     }
