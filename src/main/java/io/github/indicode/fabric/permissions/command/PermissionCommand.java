@@ -46,14 +46,28 @@ public class PermissionCommand {
         }
         {
             LiteralArgumentBuilder<ServerCommandSource> set = CommandManager.literal("set");
+            LiteralArgumentBuilder<ServerCommandSource> grant = CommandManager.literal("grant");
+            LiteralArgumentBuilder<ServerCommandSource> revoke = CommandManager.literal("revoke");
             ArgumentBuilder player = CommandManager.argument("player", EntityArgumentType.player());
             ArgumentBuilder permission = permissionArgumentBuilder("permission");
+            ArgumentBuilder playerGrant = CommandManager.argument("player", EntityArgumentType.player());
+            ArgumentBuilder permissionGrant = permissionArgumentBuilder("permission");
+            permissionGrant.executes(context -> setPerm(context, true));
+            ArgumentBuilder playerRevoke = CommandManager.argument("player", EntityArgumentType.player());
+            ArgumentBuilder permissionRevoke = permissionArgumentBuilder("permission");
+            permissionRevoke.executes(context -> setPerm(context, false));
             ArgumentBuilder enabled = CommandManager.argument("enabled", BoolArgumentType.bool());
-            enabled.executes(PermissionCommand::setPerm);
+            enabled.executes(context -> setPerm(context, BoolArgumentType.getBool(context, "enabled")));
             permission.then(enabled);
             player.then(permission);
+            playerGrant.then(permissionGrant);
+            playerRevoke.then(permissionRevoke);
+            revoke.then(playerRevoke);
+            grant.then(playerGrant);
             set.then(player);
             builder.then(set);
+            builder.then(grant);
+            builder.then(revoke);
         }
         LiteralCommandNode node = dispatcher.register(builder);
     }
@@ -64,10 +78,9 @@ public class PermissionCommand {
         context.getSource().sendFeedback(new LiteralText(player.getGameProfile().getName() + " " + (hasPerm ? "has" : "does not have") + " the permission \"" + permission.getFullIdentifier() + "\""), false);
         return 0;
     }
-    public static int setPerm(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+    public static int setPerm(CommandContext<ServerCommandSource> context, boolean enabled) throws CommandSyntaxException {
         ServerPlayerEntity player = EntityArgumentType.getPlayer(context, "player");
         Permission permission = getPermission(StringArgumentType.getString(context,"permission"));
-        boolean enabled = BoolArgumentType.getBool(context, "enabled");
         boolean hasPerm = Thimble.PERMISSIONS.hasPermission(permission, player.getGameProfile().getId());
         if (hasPerm == enabled) {
             context.getSource().sendFeedback(new LiteralText(player.getGameProfile().getName() + " " + (enabled ? "already has" : "never had") + " the permission \"" + permission.getFullIdentifier() + "\"").formatted(Formatting.RED), false);
