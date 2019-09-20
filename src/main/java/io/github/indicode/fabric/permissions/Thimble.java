@@ -36,6 +36,7 @@ public class Thimble implements ModInitializer {
     public static final List<Consumer<Pair<PermissionMap, MinecraftServer>>> permissionWriters = new ArrayList<>();
     private static final Map<String, Permission> COMMAND_PERMISSIONS = new HashMap<>();
     public static final String COMMANDS = "minecraft.command";
+    public static final List<String> disabledCommandPerms = new ArrayList<>();
     private static boolean vanillaDispatcherDisabled = false;
     public void disableVanillaDispatcherPerms() {
         vanillaDispatcherDisabled = true;
@@ -44,7 +45,7 @@ public class Thimble implements ModInitializer {
     @Override
     public void onInitialize() {
         permissionWriters.add(pair -> {
-            if (!vanillaDispatcherDisabled)registerDispatcherCommands(pair.getRight().getCommandManager().getDispatcher())
+            if (!vanillaDispatcherDisabled)registerDispatcherCommands(pair.getRight().getCommandManager().getDispatcher());
         });
     }
     public static Permission getCommandPermission(String command) {
@@ -57,6 +58,7 @@ public class Thimble implements ModInitializer {
     }
     public static void registerDispatcherCommands(CommandDispatcher<ServerCommandSource> dispatcher) {
         for (CommandNode<ServerCommandSource> child : dispatcher.getRoot().getChildren()) {
+            if (disabledCommandPerms.contains(child)) continue;
             Permission permission = Thimble.getCommandPermission(child.getName());
             Class c = CommandNode.class;
             try {
