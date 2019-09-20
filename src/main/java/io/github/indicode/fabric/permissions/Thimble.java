@@ -38,28 +38,28 @@ public class Thimble implements ModInitializer {
     public static final String COMMANDS = "minecraft.command";
     public static final List<String> disabledCommandPerms = new ArrayList<>();
     private static boolean vanillaDispatcherDisabled = false;
-    public void disableVanillaDispatcherPerms() {
+    public static void disableVanillaDispatcherPerms() {
         vanillaDispatcherDisabled = true;
     }
 
     @Override
     public void onInitialize() {
         permissionWriters.add(pair -> {
-            if (!vanillaDispatcherDisabled)registerDispatcherCommands(pair.getRight().getCommandManager().getDispatcher());
+            if (!vanillaDispatcherDisabled)registerDispatcherCommands(COMMANDS, pair.getRight().getCommandManager().getDispatcher());
         });
     }
-    public static Permission getCommandPermission(String command) {
+    public static Permission getCommandPermission(String prefix, String command) {
         if (COMMAND_PERMISSIONS.containsKey(command)) return COMMAND_PERMISSIONS.get(command);
         else {
-            CommandPermission permission = new CommandPermission(command);
+            CommandPermission permission = new CommandPermission(command, PERMISSIONS.getPermission(prefix));
             COMMAND_PERMISSIONS.put(command, permission);
             return permission;
         }
     }
-    public static void registerDispatcherCommands(CommandDispatcher<ServerCommandSource> dispatcher) {
+    public static void registerDispatcherCommands(String prefix, CommandDispatcher<ServerCommandSource> dispatcher) {
         for (CommandNode<ServerCommandSource> child : dispatcher.getRoot().getChildren()) {
             if (disabledCommandPerms.contains(child)) continue;
-            Permission permission = Thimble.getCommandPermission(child.getName());
+            Permission permission = Thimble.getCommandPermission(prefix, child.getName());
             Class c = CommandNode.class;
             try {
                 Field requirement = c.getDeclaredField("requirement");
