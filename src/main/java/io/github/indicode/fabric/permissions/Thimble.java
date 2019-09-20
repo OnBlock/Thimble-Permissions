@@ -36,10 +36,16 @@ public class Thimble implements ModInitializer {
     public static final List<Consumer<Pair<PermissionMap, MinecraftServer>>> permissionWriters = new ArrayList<>();
     private static final Map<String, Permission> COMMAND_PERMISSIONS = new HashMap<>();
     public static final String COMMANDS = "minecraft.command";
+    private static boolean vanillaDispatcherDisabled = false;
+    public void disableVanillaDispatcherPerms() {
+        vanillaDispatcherDisabled = true;
+    }
 
     @Override
     public void onInitialize() {
-        permissionWriters.add(pair -> registerDispatcherCommands(pair.getRight().getCommandManager().getDispatcher()));
+        permissionWriters.add(pair -> {
+            if (!vanillaDispatcherDisabled)registerDispatcherCommands(pair.getRight().getCommandManager().getDispatcher())
+        });
     }
     public static Permission getCommandPermission(String command) {
         if (COMMAND_PERMISSIONS.containsKey(command)) return COMMAND_PERMISSIONS.get(command);
@@ -85,5 +91,39 @@ public class Thimble implements ModInitializer {
             return false;
         }
     }
+    /*
+    public static List<String> writePermTree(List<String> perms) {
 
+    }
+    public static Map<String, Object> mapPermissionsByParent(List<String> permissions) {
+        Map<String, Object> map = new HashMap<>();
+        Map<String, >
+        for(String perm: permissions) {
+            String[] nameSplit = perm.split("[.]");
+            String lastPerm = null;
+            int i;
+            for (i = nameSplit.length - 1; i >= 0; i--) {
+                String nameSlice = "";
+                for (int j = 0; j < i; j++) {
+                    nameSlice += (j == 0 ? "" : ".") + nameSplit[j];
+                }
+                if (map.containsKey(nameSlice)) {
+                    lastPerm = nameSlice;
+                    break;
+                }
+            }
+            Permission current;
+            if (lastPerm == null) {
+                current = new Permission(nameSplit[0]);
+                addGroup(current);
+                i = 1;
+            } else current = map.get(lastPerm);
+            while (i < nameSplit.length) {
+                current = new Permission(nameSplit[i], current);
+                i++;
+            }
+        }
+    }
+
+     */
 }
