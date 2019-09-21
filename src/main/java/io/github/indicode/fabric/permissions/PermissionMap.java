@@ -6,6 +6,7 @@ import com.google.common.collect.ImmutableMap;
 import io.github.indicode.fabric.tinyconfig.DefaultedJsonObject;
 import net.minecraft.util.Pair;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 
 /**
@@ -45,6 +46,18 @@ public class PermissionMap {
             return permission;
         } else {
             return getPermission(permission.getFullIdentifier());
+        }
+    }
+    public <T extends Permission> T getPermission(String permission, Class<? extends T> def) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
+        Map<String, Permission> map =  mapPermissions(getRegisteredPermissions());
+        if (map.containsKey(permission) && map.get(permission).getClass().isAssignableFrom(def)) {
+            return (T) map.get(permission);
+        } else {
+            String[] split = permission.split("[.]");
+            String t = split[split.length - 1];
+            T instance = def.getConstructor(String.class, Permission.class).newInstance(t, permission.substring(permission.length() - t.length() - 1));
+            map.put(permission, instance);
+            return instance;
         }
     }
     public Permission getPermission(String name) {
