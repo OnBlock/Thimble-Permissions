@@ -55,7 +55,7 @@ public class PermissionMap {
         } else {
             String[] split = permission.split("[.]");
             String t = split[split.length - 1];
-            T instance = def.getConstructor(String.class, Permission.class).newInstance(t, getPermission(permission.substring(permission.length() - t.length() - 1)));
+            T instance = def.getConstructor(String.class, Permission.class).newInstance(t, getPermission(permission.substring(0, permission.length() - t.length() - 1)));
             map.put(permission, instance);
             return instance;
         }
