@@ -49,6 +49,7 @@ public class Thimble implements ModInitializer {
         });
     }
     public static Permission getCommandPermission(String prefix, String command) {
+        command = command.replace(":", "_"); // This is added because *SOMEBODY* decided to add this stupid, command-incompatable character into command names >:(
         if (COMMAND_PERMISSIONS.containsKey(command)) return COMMAND_PERMISSIONS.get(command);
         else {
             CommandPermission permission = new CommandPermission(command, PERMISSIONS.getPermission(prefix));
