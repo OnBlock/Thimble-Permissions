@@ -4,10 +4,10 @@
   "compatibilityLevel": "JAVA_8",
   "mixins": [
     "MinecraftServerMixin",
-    "IntegratedServerMixin",
     "CommandManagerMixin"
   ],
   "client": [
+    "IntegratedServerMixin"
   ],
   "injectors": {
     "defaultRequire": 1
