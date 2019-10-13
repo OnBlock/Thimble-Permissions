@@ -40,8 +40,6 @@ public class MinecraftServerMixin {
         } catch (SyntaxError | IOException syntaxError) {
             throw new RuntimeException(syntaxError);
         }
-        System.out.println(Thimble.PERMISSIONS.mapPermissions(Thimble.PERMISSIONS.getRegisteredPermissions()));
-        System.out.println("SERVload");
     }
     @Inject(method = "save", at = @At("HEAD"))
     public void savePerms(boolean b1, boolean b2, boolean b3, CallbackInfoReturnable ci) {

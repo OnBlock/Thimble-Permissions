@@ -38,7 +38,5 @@ public class IntegratedServerMixin {
         } catch (SyntaxError | IOException syntaxError) {
             throw new RuntimeException(syntaxError);
         }
-        System.out.println(Thimble.PERMISSIONS.mapPermissions(Thimble.PERMISSIONS.getRegisteredPermissions()));
-        System.out.println("SERVload");
     }
 }
