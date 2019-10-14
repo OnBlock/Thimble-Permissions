@@ -21,6 +21,7 @@ import net.minecraft.text.LiteralText;
 import net.minecraft.util.Formatting;
 
 import java.util.Map;
+import java.util.function.Predicate;
 
 
 /**
@@ -34,9 +35,10 @@ public class PermissionCommand {
         return builder.buildFuture();
     };
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
-        LiteralArgumentBuilder<ServerCommandSource> builder = CommandManager.literal("permission").requires(source -> source.hasPermissionLevel(4));
+        LiteralArgumentBuilder<ServerCommandSource> builder = CommandManager.literal("permission").requires(source -> Thimble.hasPermissionOrOp(source, "thimble.check", 2) || Thimble.hasPermissionOrOp(source, "thimble.modify", 4));
         {
             LiteralArgumentBuilder<ServerCommandSource> check = CommandManager.literal("check");
+            check.requires(source -> Thimble.hasPermissionOrOp(source, "thimble.check", 2) || Thimble.hasPermissionOrOp(source, "thimble.modify", 4));
             ArgumentBuilder player = CommandManager.argument("player", EntityArgumentType.player());
             ArgumentBuilder permission = permissionArgumentBuilder("permission");
             permission.executes(PermissionCommand::checkPerm);
@@ -45,9 +47,13 @@ public class PermissionCommand {
             builder.then(check);
         }
         {
+            Predicate<ServerCommandSource> modifyPredicate = source -> Thimble.hasPermissionOrOp(source, "thimble.modify", 4);
             LiteralArgumentBuilder<ServerCommandSource> set = CommandManager.literal("set");
+            set.requires(modifyPredicate);
             LiteralArgumentBuilder<ServerCommandSource> grant = CommandManager.literal("grant");
+            grant.requires(modifyPredicate);
             LiteralArgumentBuilder<ServerCommandSource> revoke = CommandManager.literal("revoke");
+            revoke.requires(modifyPredicate);
             ArgumentBuilder player = CommandManager.argument("player", EntityArgumentType.player());
             ArgumentBuilder permission = permissionArgumentBuilder("permission");
             ArgumentBuilder playerGrant = CommandManager.argument("player", EntityArgumentType.player());
