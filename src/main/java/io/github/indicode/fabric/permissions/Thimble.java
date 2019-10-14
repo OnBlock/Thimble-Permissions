@@ -20,6 +20,7 @@ import net.minecraft.util.Pair;
 import java.io.File;
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -45,7 +46,17 @@ public class Thimble implements ModInitializer {
     @Override
     public void onInitialize() {
         permissionWriters.add(pair -> {
+            try {
+                pair.getLeft().getPermission("minecraft", CommandPermission.class);
+                pair.getLeft().getPermission(COMMANDS, CommandPermission.class);
+                pair.getLeft().getPermission("thimble", CommandPermission.class);
+                pair.getLeft().getPermission("thimble.check", CommandPermission.class);
+                pair.getLeft().getPermission("thimble.modify", CommandPermission.class);
+            } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException | InstantiationException e) {
+                e.printStackTrace();
+            }
             if (!vanillaDispatcherDisabled)registerDispatcherCommands(COMMANDS, pair.getRight().getCommandManager().getDispatcher());
+
         });
     }
     public static Permission getCommandPermission(String prefix, String command) {
