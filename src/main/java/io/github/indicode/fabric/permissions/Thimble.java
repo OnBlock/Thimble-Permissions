@@ -45,6 +45,7 @@ public class Thimble implements ModInitializer {
 
     @Override
     public void onInitialize() {
+        Config.sync(false);
         permissionWriters.add(pair -> {
             try {
                 pair.getLeft().getPermission("minecraft", CommandPermission.class);
