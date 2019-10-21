@@ -6,6 +6,7 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.tree.CommandNode;
 import io.github.indicode.fabric.permissions.command.CommandPermission;
 import io.github.indicode.fabric.permissions.command.PermissionCommand;
+import io.github.indicode.fabric.worlddata.WorldDataLib;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.loader.FabricLoader;
 import net.minecraft.command.arguments.ArgumentTypes;
@@ -16,6 +17,8 @@ import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.Text;
 import net.minecraft.util.PacketByteBuf;
 import net.minecraft.util.Pair;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.File;
 import java.lang.reflect.Array;
@@ -31,8 +34,7 @@ import java.util.function.Consumer;
  * @author Indigo Amann
  */
 public class Thimble implements ModInitializer {
-    public static final File PERMS_FILE = new File(FabricLoader.INSTANCE.getGameDirectory().getPath() + "/permissions.json");
-    public static final File PERMS_DATA_FILE = new File(FabricLoader.INSTANCE.getGameDirectory().getPath() + "/permissions_dat.json");
+    public static final Logger LOGGER = LogManager.getLogger("Thimble Permissions");
     public static PermissionMap PERMISSIONS = new PermissionMap();
     public static final List<Consumer<Pair<PermissionMap, MinecraftServer>>> permissionWriters = new ArrayList<>();
     private static final Map<String, Permission> COMMAND_PERMISSIONS = new HashMap<>();
@@ -42,9 +44,14 @@ public class Thimble implements ModInitializer {
     public static void disableVanillaDispatcherPerms() {
         vanillaDispatcherDisabled = true;
     }
+    private static PermissionLoadHandler loadHandler = new PermissionLoadHandler();
+    public static void reload() {
+        WorldDataLib.triggerCallbackLoad(loadHandler);
+    }
 
     @Override
     public void onInitialize() {
+        WorldDataLib.addIOCallback(loadHandler);
         Config.sync(false);
         permissionWriters.add(pair -> {
             try {
@@ -53,6 +60,7 @@ public class Thimble implements ModInitializer {
                 pair.getLeft().getPermission("thimble", CommandPermission.class);
                 pair.getLeft().getPermission("thimble.check", CommandPermission.class);
                 pair.getLeft().getPermission("thimble.modify", CommandPermission.class);
+                pair.getLeft().getPermission("thimble.reload", CommandPermission.class);
             } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException | InstantiationException e) {
                 e.printStackTrace();
             }

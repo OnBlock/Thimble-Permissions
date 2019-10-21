@@ -3,11 +3,8 @@
   "package": "io.github.indicode.fabric.permissions.mixin",
   "compatibilityLevel": "JAVA_8",
   "mixins": [
-    "MinecraftServerMixin",
-    "CommandManagerMixin"
-  ],
-  "client": [
-    "IntegratedServerMixin"
+    "CommandManagerMixin",
+    "MinecraftServerMixin"
   ],
   "injectors": {
     "defaultRequire": 1

@@ -75,7 +75,17 @@ public class PermissionCommand {
             builder.then(grant);
             builder.then(revoke);
         }
-        LiteralCommandNode node = dispatcher.register(builder);
+        {
+            LiteralArgumentBuilder<ServerCommandSource> reload = CommandManager.literal("reload");
+            reload.requires(source -> Thimble.hasPermissionOrOp(source, "thimble.reload", 2));
+            reload.executes(context -> {
+                context.getSource().sendFeedback(new LiteralText("Reloading parmissions"), true);
+                Thimble.reload();
+                return 0;
+            });
+            builder.then(reload);
+        }
+        dispatcher.register(builder);
     }
     public static int checkPerm(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         ServerPlayerEntity player = EntityArgumentType.getPlayer(context, "player");
