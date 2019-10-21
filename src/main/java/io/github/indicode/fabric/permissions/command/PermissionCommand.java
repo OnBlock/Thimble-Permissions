@@ -79,7 +79,7 @@ public class PermissionCommand {
             LiteralArgumentBuilder<ServerCommandSource> reload = CommandManager.literal("reload");
             reload.requires(source -> Thimble.hasPermissionOrOp(source, "thimble.reload", 2));
             reload.executes(context -> {
-                context.getSource().sendFeedback(new LiteralText("Reloading parmissions"), true);
+                context.getSource().sendFeedback(new LiteralText("Reloading permissions"), true);
                 Thimble.reload();
                 return 0;
             });
