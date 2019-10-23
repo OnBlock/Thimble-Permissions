@@ -71,6 +71,7 @@ public class PlayerPermissionManager {
         this.permissionMap.addGroup(permission);
         return this;
     }
+    @Deprecated
     public JsonElement toJson() {
         if (removedPermissions.isEmpty()) {
             DefaultedJsonArray permArray = new DefaultedJsonArray();
