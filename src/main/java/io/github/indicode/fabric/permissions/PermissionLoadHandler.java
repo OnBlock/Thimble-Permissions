@@ -26,7 +26,7 @@ public class PermissionLoadHandler extends NBTWorldData {
         File perms = new File(file, "permissions.json");
         Thimble.PERMISSIONS = new PermissionMap();
         Thimble.LOGGER.debug("Running mod permission injectors");
-        Thimble.permissionWriters.forEach(consumer -> consumer.accept(new Pair<>(Thimble.PERMISSIONS, server)));
+        Thimble.permissionWriters.forEach(consumer -> consumer.accept(Thimble.PERMISSIONS, server));
         Thimble.LOGGER.debug("Loading permissions json");
         try {
             Jankson jankson = JanksonFactory.createJankson();

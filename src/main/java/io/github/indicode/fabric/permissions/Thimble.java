@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 /**
@@ -36,7 +37,7 @@ import java.util.function.Consumer;
 public class Thimble implements ModInitializer {
     public static final Logger LOGGER = LogManager.getLogger("Thimble Permissions");
     public static PermissionMap PERMISSIONS = new PermissionMap();
-    public static final List<Consumer<Pair<PermissionMap, MinecraftServer>>> permissionWriters = new ArrayList<>();
+    public static final List<BiConsumer<PermissionMap, MinecraftServer>> permissionWriters = new ArrayList<>();
     private static final Map<String, Permission> COMMAND_PERMISSIONS = new HashMap<>();
     public static final String COMMANDS = "minecraft.command";
     public static final List<String> disabledCommandPerms = new ArrayList<>();
@@ -53,18 +54,18 @@ public class Thimble implements ModInitializer {
     public void onInitialize() {
         WorldDataLib.addIOCallback(loadHandler);
         Config.sync(false);
-        permissionWriters.add(pair -> {
+        permissionWriters.add((map, server) -> {
             try {
-                pair.getLeft().getPermission("minecraft", CommandPermission.class);
-                pair.getLeft().getPermission(COMMANDS, CommandPermission.class);
-                pair.getLeft().getPermission("thimble", CommandPermission.class);
-                pair.getLeft().getPermission("thimble.check", CommandPermission.class);
-                pair.getLeft().getPermission("thimble.modify", CommandPermission.class);
-                pair.getLeft().getPermission("thimble.reload", CommandPermission.class);
+                map.getPermission("minecraft", CommandPermission.class);
+                map.getPermission(COMMANDS, CommandPermission.class);
+                map.getPermission("thimble", CommandPermission.class);
+                map.getPermission("thimble.check", CommandPermission.class);
+                map.getPermission("thimble.modify", CommandPermission.class);
+                map.getPermission("thimble.reload", CommandPermission.class);
             } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException | InstantiationException e) {
                 e.printStackTrace();
             }
-            if (!vanillaDispatcherDisabled)registerDispatcherCommands(COMMANDS, pair.getRight().getCommandManager().getDispatcher());
+            if (!vanillaDispatcherDisabled)registerDispatcherCommands(COMMANDS, server.getCommandManager().getDispatcher());
 
         });
     }
