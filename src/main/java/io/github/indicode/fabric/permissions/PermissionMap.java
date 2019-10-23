@@ -226,9 +226,7 @@ public class PermissionMap {
             }
             PlayerPermissionManager player = getPlayer(UUID.fromString(key));
             ListTag removed = (ListTag) entry.get("removed");
-            if (removed == null) {
-                Thimble.LOGGER.warn(String.format("Removed permission data for player %s exists, but is null. This should never happen.", key));
-            } else {
+            if (removed != null) {
                 for (Tag removedTag: removed) {
                     if (!(removedTag instanceof StringTag)) {
                         Thimble.LOGGER.warn(String.format("A removed permission for player %s exists, but is null. This should never happen.", key));
@@ -243,9 +241,7 @@ public class PermissionMap {
                 }
             }
             ListTag granted = (ListTag) entry.get("granted");
-            if (granted == null) {
-                Thimble.LOGGER.warn(String.format("Permission data for player %s exists, but is null. This should never happen.", key));
-            } else {
+            if (granted != null) {
                 for (Tag grantedTag: granted) {
                     if (!(grantedTag instanceof StringTag)) {
                         Thimble.LOGGER.warn(String.format("A permission for player %s exists, but is null. This should never happen.", key));
