@@ -55,6 +55,8 @@ public class PermissionLoadHandler implements WorldIOCalback {
         File perms = new File(file, "permissions.json");
         File dat = new File(file, "permissions_dat.json");
         Thimble.PERMISSIONS = new PermissionMap();
+        Thimble.LOGGER.debug("Running mod permission injectors");
+        Thimble.permissionWriters.forEach(consumer -> consumer.accept(new Pair<>(Thimble.PERMISSIONS, server)));
         Thimble.LOGGER.debug("Loading permissions json");
         try {
             Jankson jankson = JanksonFactory.createJankson();
@@ -74,7 +76,5 @@ public class PermissionLoadHandler implements WorldIOCalback {
             System.exit(1);
         }
         Thimble.LOGGER.debug("Loaded permissions from files");
-        Thimble.permissionWriters.forEach(consumer -> consumer.accept(new Pair<>(Thimble.PERMISSIONS, server)));
-        Thimble.LOGGER.debug("Ran mod permission injectors");
     }
 }
