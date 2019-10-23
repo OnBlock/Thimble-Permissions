@@ -4,6 +4,10 @@ import blue.endless.jankson.*;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import io.github.indicode.fabric.tinyconfig.DefaultedJsonObject;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.StringTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.util.Pair;
 
 import java.lang.reflect.InvocationTargetException;
@@ -114,12 +118,18 @@ public class PermissionMap {
         }
         return jsonObject;
     }
+    @Deprecated
     public DefaultedJsonObject playersToJson() {
         DefaultedJsonObject jsonObject = new DefaultedJsonObject();
         permissionMap.forEach((uuid, manager) -> {
             jsonObject.set(uuid.toString(), manager.toJson());
         });
         return jsonObject;
+    }
+    public CompoundTag writePlayersToTag(CompoundTag tag) {
+        // did not do it in the more compact array per permission form to account for future ineger perms and force-denied perms
+        permissionMap.forEach((uuid, manager) -> tag.put(uuid.toString(), manager.toNBT()));
+        return tag;
     }
     public Map<String, Permission> mapPermissions(List<Permission> permissions) {
         Map<String, Permission> map = new HashMap<>();
@@ -185,6 +195,7 @@ public class PermissionMap {
         }
         permissionMap.values().forEach(pair -> addGroup(pair.getLeft()));
     }
+    @Deprecated
     public void playersFromJson(DefaultedJsonObject map) {
         Map<String, Permission> permissionMap = mapPermissions(permissions);
         for (Map.Entry<String, JsonElement> entry : map.entrySet()) {
@@ -203,6 +214,51 @@ public class PermissionMap {
             removedPermissions.forEach(permission -> {
                 if (permission instanceof JsonPrimitive) player.removePermission(permissionMap.get(((JsonPrimitive) permission).asString()));
             });
+        }
+    }
+    public void readPlayersFromTag(CompoundTag tag) {
+        Map<String, Permission> permissionMap = mapPermissions(permissions);
+        for (String key : tag.getKeys()) {
+            CompoundTag entry = tag.getCompound(key);
+            if (entry == null) {
+                Thimble.LOGGER.warn(String.format("Permission data for player %s is equal to null. This should never happen.", key));
+                continue;
+            }
+            PlayerPermissionManager player = getPlayer(UUID.fromString(key));
+            ListTag removed = (ListTag) entry.get("removed");
+            if (removed == null) {
+                Thimble.LOGGER.warn(String.format("Removed permission data for player %s exists, but is null. This should never happen.", key));
+            } else {
+                for (Tag removedTag: removed) {
+                    if (!(removedTag instanceof StringTag)) {
+                        Thimble.LOGGER.warn(String.format("A removed permission for player %s exists, but is null. This should never happen.", key));
+                        continue;
+                    }
+                    String perm = tag.asString();
+                    if (!permissionMap.containsKey(perm)) {
+                        Thimble.LOGGER.warn(String.format("Unrecognised removed permission \"%s\" found for player %s", perm, key));
+                        continue;
+                    }
+                    player.removePermission(permissionMap.get(perm));
+                }
+            }
+            ListTag granted = (ListTag) entry.get("granted");
+            if (granted == null) {
+                Thimble.LOGGER.warn(String.format("Permission data for player %s exists, but is null. This should never happen.", key));
+            } else {
+                for (Tag grantedTag: granted) {
+                    if (!(grantedTag instanceof StringTag)) {
+                        Thimble.LOGGER.warn(String.format("A permission for player %s exists, but is null. This should never happen.", key));
+                        continue;
+                    }
+                    String perm = tag.asString();
+                    if (!permissionMap.containsKey(perm)) {
+                        Thimble.LOGGER.warn(String.format("Unrecognised permission \"%s\" found for player %s", perm, key));
+                        continue;
+                    }
+                    player.permission(permissionMap.get(perm));
+                }
+            }
         }
     }
     public void fromJson(DefaultedJsonObject json) {
