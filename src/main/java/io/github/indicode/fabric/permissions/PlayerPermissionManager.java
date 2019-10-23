@@ -96,12 +96,12 @@ public class PlayerPermissionManager {
         CompoundTag tag = new CompoundTag();
         if (!removedPermissions.isEmpty()) {
             ListTag removed = new ListTag();
-            removedPermissions.forEach(permission -> removed.add(StringTag.of(permission.identifier)));
+            removedPermissions.forEach(permission -> removed.add(StringTag.of(permission.getFullIdentifier())));
             tag.put("removed", removed);
         }
         if (!permissions.isEmpty()) {
             ListTag granted = new ListTag();
-            permissions.forEach(permission -> granted.add(StringTag.of(permission.identifier)));
+            permissions.forEach(permission -> granted.add(StringTag.of(permission.getFullIdentifier())));
             tag.put("granted", granted);
         }
         return tag;

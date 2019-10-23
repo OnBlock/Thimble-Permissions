@@ -234,7 +234,7 @@ public class PermissionMap {
                         Thimble.LOGGER.warn(String.format("A removed permission for player %s exists, but is null. This should never happen.", key));
                         continue;
                     }
-                    String perm = tag.asString();
+                    String perm = removedTag.asString();
                     if (!permissionMap.containsKey(perm)) {
                         Thimble.LOGGER.warn(String.format("Unrecognised removed permission \"%s\" found for player %s", perm, key));
                         continue;
@@ -251,7 +251,7 @@ public class PermissionMap {
                         Thimble.LOGGER.warn(String.format("A permission for player %s exists, but is null. This should never happen.", key));
                         continue;
                     }
-                    String perm = tag.asString();
+                    String perm = grantedTag.asString();
                     if (!permissionMap.containsKey(perm)) {
                         Thimble.LOGGER.warn(String.format("Unrecognised permission \"%s\" found for player %s", perm, key));
                         continue;
