@@ -189,6 +189,8 @@ public class PermissionMap {
                 for (String inherit : inheritList) {
                     if (permissionMap.containsKey(inherit)) {
                         entry.getValue().getLeft().inherit(permissionMap.get(inherit).getLeft());
+                    } else if (existingPermissionMap.containsKey(inherit)) {
+                        entry.getValue().getLeft().inherit(existingPermissionMap.get(inherit));
                     } else {
                         Thimble.LOGGER.warn(String.format("Permission \"%s\" inherits a nonexistant permission \"%s\"", entry.getValue().getLeft().getFullIdentifier(), inherit));
                     }
@@ -197,8 +199,8 @@ public class PermissionMap {
         }
         permissionMap.values().forEach(pair -> addGroup(pair.getLeft()));
         defaultPermission = tree.getString("*", (String)null);
-        if (defaultPermission != null) {
-            if (!mapPermissions(permissions).containsKey(defaultPermission)) {
+        if (defaultPermission != null && !defaultPermission.equals("null")) {
+            if (!permissionMap.containsKey(defaultPermission) && !existingPermissionMap.containsKey(defaultPermission)) {
                 Thimble.LOGGER.warn(String.format("Default permission is set to an undefined permission: \"%s\"", defaultPermission));
             }
         }
