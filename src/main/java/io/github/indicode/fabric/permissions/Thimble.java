@@ -19,6 +19,9 @@ import net.minecraft.util.PacketByteBuf;
 import net.minecraft.util.Pair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.message.Message;
+import org.apache.logging.log4j.message.MessageFactory;
+import org.apache.logging.log4j.message.SimpleMessage;
 
 import java.io.File;
 import java.lang.reflect.Array;
@@ -35,7 +38,22 @@ import java.util.function.Consumer;
  * @author Indigo Amann
  */
 public class Thimble implements ModInitializer {
-    public static final Logger LOGGER = LogManager.getLogger("Thimble Permissions");
+    public static final Logger LOGGER = LogManager.getLogger("Thimble", new MessageFactory() {
+        @Override
+        public Message newMessage(Object message) {
+            return new SimpleMessage("[Thimble] " + message);
+        }
+
+        @Override
+        public Message newMessage(String message) {
+            return new SimpleMessage("[Thimble] " + message);
+        }
+
+        @Override
+        public Message newMessage(String message, Object... params) {
+            return new SimpleMessage("[Thimble] " + message);
+        }
+    });
     public static PermissionMap PERMISSIONS = new PermissionMap();
     public static final List<BiConsumer<PermissionMap, MinecraftServer>> permissionWriters = new ArrayList<>();
     private static final Map<String, Permission> COMMAND_PERMISSIONS = new HashMap<>();
