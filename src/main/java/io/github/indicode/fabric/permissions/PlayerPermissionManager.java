@@ -32,6 +32,7 @@ public class PlayerPermissionManager {
         else for (Permission removedPermission : removedPermissions) {
             if (permission.isDescendantOf(removedPermission)) return false;
         }
+        if (permissionMap.defaultPermission.equals(perm)) return true;
         if (permissions.contains(permission)) return true;
         else for (Permission here : permissions) {
             if (here.hasPermission(permission)) return true;
@@ -44,7 +45,8 @@ public class PlayerPermissionManager {
         else for (Permission removedPermission : removedPermissions) {
             if (permission.isDescendantOf(removedPermission)) return false;
         }
-        if (permissions.contains(permission)) return  true;
+        if (permissionMap.defaultPermission.equals(perm)) return true;
+        if (permissions.contains(permission)) return true;
         for (Permission permission1: permissions) {
             if (permission1.hasPermission(permission))
             if (permission.hasPermission(permission1)) return true;

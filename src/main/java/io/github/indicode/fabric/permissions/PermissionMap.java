@@ -19,6 +19,7 @@ import java.util.*;
 public class PermissionMap {
     protected Map<UUID, PlayerPermissionManager> permissionMap = new HashMap<>();
     protected List<Permission> permissions = new ArrayList<>();
+    protected String defaultPermission = null;
     public ImmutableList<Permission> getRegisteredPermissions() {
         return ImmutableList.copyOf(permissions);
     }
@@ -143,6 +144,7 @@ public class PermissionMap {
         Map<String, Pair<Permission, DefaultedJsonObject>> keyMap = new HashMap<>();
         for (Map.Entry<String, JsonElement> entry : tree.entrySet()) {
             String id = nestLevel == null ? entry.getKey() : nestLevel + "." + entry.getKey();
+            if (id.equals("*")) continue;
             if (entry.getValue() instanceof JsonObject) {
                 Permission permission;
                 if (!existingPermissions.containsKey(id)) {
@@ -194,6 +196,12 @@ public class PermissionMap {
             }
         }
         permissionMap.values().forEach(pair -> addGroup(pair.getLeft()));
+        defaultPermission = tree.getString("*", (String)null);
+        if (defaultPermission != null) {
+            if (!mapPermissions(permissions).containsKey(defaultPermission)) {
+                Thimble.LOGGER.warn(String.format("Default permission is set to an undefined permission: \"%s\"", defaultPermission));
+            }
+        }
     }
     @Deprecated
     public void playersFromJson(DefaultedJsonObject map) {
