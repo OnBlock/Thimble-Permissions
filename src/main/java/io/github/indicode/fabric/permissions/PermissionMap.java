@@ -2,7 +2,6 @@ package io.github.indicode.fabric.permissions;
 
 import blue.endless.jankson.*;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import io.github.indicode.fabric.tinyconfig.DefaultedJsonObject;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -18,10 +17,10 @@ import java.util.*;
  */
 public class PermissionMap {
     protected Map<UUID, PlayerPermissionManager> permissionMap = new HashMap<>();
-    protected List<Permission> permissions = new ArrayList<>();
+    protected Map<String, Permission> permissions = new HashMap();
     protected String defaultPermission = null;
-    public ImmutableList<Permission> getRegisteredPermissions() {
-        return ImmutableList.copyOf(permissions);
+    public ImmutableList<String> getRegisteredPermissions() {
+        return ImmutableList.copyOf(permissions.keySet());
     }
     public PlayerPermissionManager getPlayer(UUID uuid) {
         if (permissionMap.containsKey(uuid)) return permissionMap.get(uuid);
@@ -29,91 +28,32 @@ public class PermissionMap {
         permissionMap.put(uuid, manager);
         return manager;
     }
-    public boolean addGroup(Permission permission) {
-        if (permission == null) return  false;
-        while (permission.parent != null) {
-            permission = permission.parent;
-        }
-        if (!permissions.contains(permission)) {
-            for (Iterator<Permission> iterator = permissions.iterator(); iterator.hasNext(); ) {
-                Permission value = iterator.next();
-                if (permission.isDescendantOf(value)) return false;
-                else if (value.isDescendantOf(permission)) iterator.remove();
-            }
-            permissions.add(permission);
-            permission.getInheritance().forEach(this::addGroup);
-            return true;
+    public boolean registerPermission(String permission, PermChangeBehavior... behaviors) {
+        if (permission == null || permission.isEmpty()) return false;
+        if (permissionExists(permission)) return false;
+        permissions.put(permission, new Permission(behaviors));
+        return true;
+    }
+    public boolean permissionExists(String permission) {
+        if (permission == null || permission.isEmpty()) return false;
+        for (String existing : permissions.keySet()) {
+            if (isChildOrSame(existing, permission)) return true;
         }
         return false;
-    }
-    public Permission getPermission(Permission permission) {
-        if (addGroup(permission)) {
-            return permission;
-        } else {
-            return getPermission(permission.getFullIdentifier());
-        }
-    }
-    public <T extends Permission> T getPermission(String permission, Class<? extends T> def) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
-        Map<String, Permission> map =  mapPermissions(getRegisteredPermissions());
-        if (map.containsKey(permission) && map.get(permission).getClass().isAssignableFrom(def)) {
-            return (T) map.get(permission);
-        } else {
-            String[] split = permission.split("[.]");
-            String t = split[split.length - 1];
-            T instance = split.length > 1 ?
-                    def.getConstructor(String.class, Permission.class).newInstance(t, getPermission(permission.substring(0, permission.length() - t.length() - 1))) :
-                    def.getConstructor(String.class, Permission.class).newInstance(permission, null);
-            map.put(permission, instance);
-            return instance;
-        }
-    }
-    public Permission getPermission(String name) {
-        Map<String, Permission> map = mapPermissions(permissions);
-        if (map.containsKey(name)) return map.get(name);
-        else {
-            String[] nameSplit = name.split("[.]");
-            String lastPerm = null;
-            int i;
-            for (i = nameSplit.length - 1; i >= 0; i--) {
-                String nameSlice = "";
-                for (int j = 0; j < i; j++) {
-                    nameSlice += (j == 0 ? "" : ".") + nameSplit[j];
-                }
-                if (map.containsKey(nameSlice)) {
-                    lastPerm = nameSlice;
-                    break;
-                }
-            }
-            Permission current;
-            if (lastPerm == null) {
-                current = new Permission(nameSplit[0]);
-                addGroup(current);
-                i = 1;
-            } else current = map.get(lastPerm);
-            while(i < nameSplit.length) {
-                current = new Permission(nameSplit[i], current);
-                i++;
-            }
-            return current;
-        }
-    }
-    public boolean isChildOrSame(Permission parent, Permission child) {
-        return isChildOrSame(parent.getFullIdentifier(), child.getFullIdentifier());
     }
     public boolean isChildOrSame(String parent, String child) {
         return child.contains(parent);
     }
-    public boolean isInherited(Permission permission, String inherited) {
-        for (Permission inherit : permission.inheritance) {
-            if (isChildOrSame(inherit.getFullIdentifier(), inherited))  return true;
-        }
-        return false;
-    }
-    public boolean isInherited(Permission permission, Permission inherited) {
-        return isInherited(permission, inherited.getFullIdentifier());
+    public Permission getPermissionData(String permission) {
+        return permissions.get(permission);
     }
     public boolean isInherited(String permission, String inherited) {
-        return isInherited(getPermission(permission), inherited);
+        Permission permission_ = getPermissionData(permission);
+        for (String inherit : permission_.inheritance) {
+            if (isChildOrSame(inherit, inherited))  return true;
+            if (isInherited(inherit, inherited))  return true;
+        }
+        return false;
     }
     public boolean hasPermission(Permission permission, UUID player) {
         return getPlayer(player).hasPermission(permission);
@@ -121,109 +61,85 @@ public class PermissionMap {
     public boolean hasPermission(String permission, UUID player) {
         return getPlayer(player).hasPermission(permission);
     }
-    public boolean hasPermissionOrChild(String permission, UUID player) {
-        return getPlayer(player).hasPermissionOrChild(permission);
-    }
-    public DefaultedJsonObject toJson() {
+    /*public DefaultedJsonObject toJson() {
         DefaultedJsonObject jsonObject = new DefaultedJsonObject();
         jsonObject.set("permissions", permissionsToJson());
         jsonObject.set("players", playersToJson());
         return jsonObject;
-    }
-    public DefaultedJsonObject permissionsToJson() {
+    }*/
+    /*public DefaultedJsonObject permissionsToJson() {
         DefaultedJsonObject jsonObject = new DefaultedJsonObject();
-        for (Permission permission : permissions) {
-            if (permission.shouldSave()) jsonObject.set(permission.identifier, permission.toJson());
+        for (String permission : permissions.keySet()) {
+            if (permission.shouldSave) jsonObject.set(permission.identifier, permission.toJson());
         }
         return jsonObject;
-    }
-    @Deprecated
+    }*/
+    /*@Deprecated
     public DefaultedJsonObject playersToJson() {
         DefaultedJsonObject jsonObject = new DefaultedJsonObject();
         permissionMap.forEach((uuid, manager) -> {
             jsonObject.set(uuid.toString(), manager.toJson());
         });
         return jsonObject;
-    }
+    }*/
     public CompoundTag writePlayersToTag(CompoundTag tag) {
-        // did not do it in the more compact array per permission form to account for future ineger perms and force-denied perms
+        // did not do it in the more compact array per permission form to account for future integer perms and force-denied perms
         permissionMap.forEach((uuid, manager) -> tag.put(uuid.toString(), manager.toNBT()));
         return tag;
     }
-    public Map<String, Permission> mapPermissions(List<Permission> permissions) {
-        Map<String, Permission> map = new HashMap<>();
-        for (Permission permission : permissions) {
-            map.put(permission.getFullIdentifier(), permission);
-            map.putAll(mapPermissions(permission.getChildren()));
-        }
-        return map;
-    }
-    protected Map<String, Pair<Permission, DefaultedJsonObject>> loadBlankPermissionTree(DefaultedJsonObject tree, Map<String, Pair<Permission, DefaultedJsonObject>> existingPermissions, String nestLevel, Permission parent) {
-        Map<String, Pair<Permission, DefaultedJsonObject>> keyMap = new HashMap<>();
+    protected Map<String, DefaultedJsonObject> loadBlankPermissionTree(DefaultedJsonObject tree, Map<String, DefaultedJsonObject> existingPermissions, String nestLevel) {
+        Map<String, DefaultedJsonObject> keyMap = new HashMap<>();
         for (Map.Entry<String, JsonElement> entry : tree.entrySet()) {
             String id = nestLevel == null ? entry.getKey() : nestLevel + "." + entry.getKey();
             if (id.equals("*")) continue;
+            if (existingPermissions.containsKey(id) || permissionExists(id)) continue;
             if (entry.getValue() instanceof JsonObject) {
-                Permission permission;
-                if (!existingPermissions.containsKey(id)) {
-                    permission = new Permission(entry.getKey(), parent);
-                } else {
-                    permission = existingPermissions.get(id).getLeft();
-                }
-                keyMap.put(id, new Pair<>(permission, DefaultedJsonObject.of((JsonObject) entry.getValue())));
-                keyMap.putAll(loadBlankPermissionTree(DefaultedJsonObject.of((JsonObject) entry.getValue()), keyMap, id, permission));
+                keyMap.put(id, DefaultedJsonObject.of((JsonObject) entry.getValue()));
+                keyMap.putAll(loadBlankPermissionTree(DefaultedJsonObject.of((JsonObject) entry.getValue()), keyMap, id));
             } else if (entry.getValue() == null || entry.getValue().equals(JsonNull.INSTANCE)) {
-                Permission permission;
-                if (!existingPermissions.containsKey(id)) {
-                    permission = new Permission(entry.getKey(), parent);
-                } else {
-                    permission = existingPermissions.get(id).getLeft();
-                }
-                keyMap.put(id, new Pair<>(permission, null));
+                keyMap.put(id, null);
             }
         }
         return keyMap;
     }
     public void permissionsFromJson(DefaultedJsonObject tree) {
-        Map<String, Permission> existingPermissionMap = mapPermissions(permissions);
-        Map<String, Pair<Permission, DefaultedJsonObject>> permissionMap = loadBlankPermissionTree(tree, new HashMap<>(), null, null);
-        for (Iterator<Map.Entry<String, Pair<Permission, DefaultedJsonObject>>> iterator = permissionMap.entrySet().iterator(); iterator.hasNext(); ) {
-            Map.Entry<String, Pair<Permission, DefaultedJsonObject>> entry = iterator.next();
-            if (existingPermissionMap.containsKey(entry.getKey())) {
-                iterator.remove();
+        List<String> existingPermissions = getRegisteredPermissions();
+        Map<String, DefaultedJsonObject> permissionMap = loadBlankPermissionTree(tree, new HashMap<>(), null);
+        Map<String, Permission> newPermissions = new HashMap();
+        for (Iterator<Map.Entry<String, DefaultedJsonObject>> iterator = permissionMap.entrySet().iterator(); iterator.hasNext(); ) {
+            Map.Entry<String, DefaultedJsonObject> entry = iterator.next();
+            if (existingPermissions.contains(entry.getKey())) {
                 continue;
             }
-            if (entry.getValue().getRight() == null) {
-                continue;
-            }
-            if (entry.getValue().getRight().containsKey("inherits")) {
-                JsonElement inherits = entry.getValue().getRight().get("inherits");
-                List<String> inheritList = new ArrayList<>();
-                if (inherits instanceof JsonArray) {
-                    ((JsonArray) inherits).forEach(it -> inheritList.add(((JsonPrimitive) it).asString()));
-                } else if (inherits instanceof JsonPrimitive) {
-                    inheritList.add(((JsonPrimitive) inherits).asString());
-                }
-                for (String inherit : inheritList) {
-                    if (permissionMap.containsKey(inherit)) {
-                        entry.getValue().getLeft().inherit(permissionMap.get(inherit).getLeft());
-                    } else if (existingPermissionMap.containsKey(inherit)) {
-                        entry.getValue().getLeft().inherit(existingPermissionMap.get(inherit));
-                    } else {
-                        Thimble.LOGGER.warn(String.format("Permission \"%s\" inherits a nonexistant permission \"%s\"", entry.getValue().getLeft().getFullIdentifier(), inherit));
+            Permission permission = new Permission();
+            if (entry.getValue() != null) {
+                if (entry.getValue().containsKey("inherits")) {
+                    JsonElement inherits = entry.getValue().get("inherits");
+                    List<String> inheritList = new ArrayList<>();
+                    if (inherits instanceof JsonArray) {
+                        ((JsonArray) inherits).forEach(it -> inheritList.add(((JsonPrimitive) it).asString()));
+                    } else if (inherits instanceof JsonPrimitive) {
+                        inheritList.add(((JsonPrimitive) inherits).asString());
+                    }
+                    permission.inheritance.addAll(inheritList);
+                    for (String inherit : inheritList) {
+                        if (!permissionMap.containsKey(inherit) && !existingPermissions.contains(inherit)) {
+                            Thimble.LOGGER.warn(String.format("Permission \"%s\" inherits a nonexistant permission \"%s\"", entry.getKey(), inherit));
+                        }
                     }
                 }
             }
+            newPermissions.put(entry.getKey(), permission);
         }
-        permissionMap.values().forEach(pair -> addGroup(pair.getLeft()));
+        permissions.putAll(newPermissions); // TODO dont overwrite old perms
         defaultPermission = tree.getString("*", (String)null);
         if (defaultPermission != null && !defaultPermission.equals("null")) {
-            if (!permissionMap.containsKey(defaultPermission) && !existingPermissionMap.containsKey(defaultPermission)) {
+            if (!permissionMap.containsKey(defaultPermission) && !existingPermissions.contains(defaultPermission)) {
                 Thimble.LOGGER.warn(String.format("Default permission is set to an undefined permission: \"%s\"", defaultPermission));
             }
         }
     }
-    @Deprecated
+    /*@Deprecated
     public void playersFromJson(DefaultedJsonObject map) {
         Map<String, Permission> permissionMap = mapPermissions(permissions);
         for (Map.Entry<String, JsonElement> entry : map.entrySet()) {
@@ -243,9 +159,9 @@ public class PermissionMap {
                 if (permission instanceof JsonPrimitive) player.removePermission(permissionMap.get(((JsonPrimitive) permission).asString()));
             });
         }
-    }
+    }*/
     public void readPlayersFromTag(CompoundTag tag) {
-        Map<String, Permission> permissionMap = mapPermissions(permissions);
+        List<String> permissions = getRegisteredPermissions();
         for (String key : tag.getKeys()) {
             CompoundTag entry = tag.getCompound(key);
             if (entry == null) {
@@ -261,11 +177,11 @@ public class PermissionMap {
                         continue;
                     }
                     String perm = removedTag.asString();
-                    if (!permissionMap.containsKey(perm)) {
+                    if (!permissions.contains(perm)) {
                         Thimble.LOGGER.warn(String.format("Unrecognised removed permission \"%s\" found for player %s", perm, key));
                         continue;
                     }
-                    player.removePermission(permissionMap.get(perm));
+                    player.removePermission(perm);
                 }
             }
             ListTag granted = (ListTag) entry.get("granted");
@@ -276,19 +192,19 @@ public class PermissionMap {
                         continue;
                     }
                     String perm = grantedTag.asString();
-                    if (!permissionMap.containsKey(perm)) {
+                    if (!permissions.contains(perm)) {
                         Thimble.LOGGER.warn(String.format("Unrecognised permission \"%s\" found for player %s", perm, key));
                         continue;
                     }
-                    player.permission(permissionMap.get(perm));
+                    player.permission(perm);
                 }
             }
         }
     }
-    public void fromJson(DefaultedJsonObject json) {
+    /*public void fromJson(DefaultedJsonObject json) {
         permissionsFromJson(DefaultedJsonObject.of((JsonObject) json.get("permissions")));
         playersFromJson(DefaultedJsonObject.of((JsonObject) json.get("players")));
-    }
+    }*/
     @Override
     public String toString() {
         return permissions.toString() + "|" + permissionMap.toString();

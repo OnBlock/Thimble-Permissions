@@ -1,30 +1,19 @@
 package io.github.indicode.fabric.permissions;
 
-import com.google.gson.JsonObject;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.tree.CommandNode;
-import io.github.indicode.fabric.permissions.command.CommandPermission;
-import io.github.indicode.fabric.permissions.command.PermissionCommand;
 import io.github.indicode.fabric.worlddata.WorldDataLib;
 import net.fabricmc.api.ModInitializer;
-import net.fabricmc.loader.FabricLoader;
-import net.minecraft.command.arguments.ArgumentTypes;
-import net.minecraft.command.arguments.serialize.ArgumentSerializer;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.text.Text;
-import net.minecraft.util.PacketByteBuf;
-import net.minecraft.util.Pair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.message.Message;
 import org.apache.logging.log4j.message.MessageFactory;
 import org.apache.logging.log4j.message.SimpleMessage;
 
-import java.io.File;
-import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
@@ -32,7 +21,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 
 /**
  * @author Indigo Amann

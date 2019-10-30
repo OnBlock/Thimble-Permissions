@@ -2,7 +2,6 @@ package io.github.indicode.fabric.permissions;
 
 import blue.endless.jankson.JsonElement;
 import blue.endless.jankson.JsonPrimitive;
-import io.github.indicode.fabric.permissions.command.CommandPermission;
 import io.github.indicode.fabric.tinyconfig.DefaultedJsonArray;
 import io.github.indicode.fabric.tinyconfig.DefaultedJsonObject;
 import net.minecraft.nbt.CompoundTag;

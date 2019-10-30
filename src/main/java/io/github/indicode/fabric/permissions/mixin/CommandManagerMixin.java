@@ -1,7 +1,6 @@
 package io.github.indicode.fabric.permissions.mixin;
 
 import com.mojang.brigadier.CommandDispatcher;
-import io.github.indicode.fabric.permissions.Permission;
 import io.github.indicode.fabric.permissions.command.PermissionCommand;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
