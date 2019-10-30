@@ -97,6 +97,24 @@ public class PermissionMap {
             return current;
         }
     }
+    public boolean isChildOrSame(Permission parent, Permission child) {
+        return isChildOrSame(parent.getFullIdentifier(), child.getFullIdentifier());
+    }
+    public boolean isChildOrSame(String parent, String child) {
+        return child.contains(parent);
+    }
+    public boolean isInherited(Permission permission, String inherited) {
+        for (Permission inherit : permission.inheritance) {
+            if (isChildOrSame(inherit.getFullIdentifier(), inherited))  return true;
+        }
+        return false;
+    }
+    public boolean isInherited(Permission permission, Permission inherited) {
+        return isInherited(permission, inherited.getFullIdentifier());
+    }
+    public boolean isInherited(String permission, String inherited) {
+        return isInherited(getPermission(permission), inherited);
+    }
     public boolean hasPermission(Permission permission, UUID player) {
         return getPlayer(player).hasPermission(permission);
     }
