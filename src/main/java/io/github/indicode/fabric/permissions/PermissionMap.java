@@ -41,11 +41,7 @@ public class PermissionMap {
         }
     }
     public boolean permissionExists(String permission) {
-        if (permission == null || permission.isEmpty()) return false;
-        for (String existing : permissions.keySet()) {
-            if (isChildOrSame(existing, permission)) return true;
-        }
-        return false;
+        return permission != null && !permission.isEmpty() && permissions.containsKey(permission);
     }
     public boolean isChildOrSame(String parent, String child) {
         return child.startsWith(parent);
@@ -210,7 +206,7 @@ public class PermissionMap {
     }*/
     @Override
     public String toString() {
-        return permissions.toString() + "|" + permissionMap.toString();
+        return permissions.keySet().toString() + "|" + permissionMap.toString();
     }
     //TODO: load the permission tree first, then deal with inheritance
     /*public void permissionsFromJson(DefaultedJsonObject json) {
