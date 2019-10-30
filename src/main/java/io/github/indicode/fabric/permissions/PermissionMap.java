@@ -51,6 +51,7 @@ public class PermissionMap {
     }
     public boolean isInherited(String permission, String inherited) {
         Permission permission_ = getPermissionData(permission);
+        if (isChildOrSame(permission, inherited)) return true;
         for (String inherit : permission_.inheritance) {
             if (isChildOrSame(inherit, inherited))  return true;
             if (isInherited(inherit, inherited))  return true;

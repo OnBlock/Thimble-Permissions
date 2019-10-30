@@ -41,7 +41,7 @@ public class PlayerPermissionManager {
     }
     public PlayerPermissionManager permission(String permission) {
         if (permission == null) return this;
-        if (removedPermissions.contains(permission)) removedPermissions.remove(permission);
+        removedPermissions.remove(permission);
         if (permissions.contains(permission)) return this;
         for (Iterator<String> iterator = permissions.iterator(); iterator.hasNext(); ) {
             String here = iterator.next();
