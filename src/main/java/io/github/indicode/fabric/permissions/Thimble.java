@@ -44,8 +44,6 @@ public class Thimble implements ModInitializer {
     });
     public static PermissionMap PERMISSIONS = new PermissionMap();
     public static final List<BiConsumer<PermissionMap, MinecraftServer>> permissionWriters = new ArrayList<>();
-    private static final Map<String, Permission> COMMAND_PERMISSIONS = new HashMap<>();
-    public static final List<String> disabledCommandPerms = new ArrayList<>();
     private static boolean vanillaDispatcherDisabled = false;
     public static void disableVanillaCommandPerms() {
         vanillaDispatcherDisabled = true;
@@ -63,19 +61,14 @@ public class Thimble implements ModInitializer {
             registerCommandPermission("minecraft");
             registerCommandPermission("minecraft.command");
             registerCommandPermission("thimble");
-            if (!vanillaDispatcherDisabled)registerDispatcherCommands("minecraft.command", server.getCommandManager().getDispatcher());
+            if (!vanillaDispatcherDisabled) registerDispatcherCommands("minecraft.command", server.getCommandManager().getDispatcher());
         });
     }
     public static void registerCommandPermission(String permission) {
-        permission = permission.replace(":", "_");
-        if (!COMMAND_PERMISSIONS.containsKey(permission)) {
-            Permission permissionData = new Permission(PermChangeBehavior.UPDATE_COMMAND_TREE);
-            COMMAND_PERMISSIONS.put(permission, permissionData);
-        }
+        PERMISSIONS.registerPermission(permission.replace(":", "_"), PermChangeBehavior.UPDATE_COMMAND_TREE);
     }
     public static void registerDispatcherCommands(String prefix, CommandDispatcher<ServerCommandSource> dispatcher) {
         for (CommandNode<ServerCommandSource> child : dispatcher.getRoot().getChildren()) {
-            if (disabledCommandPerms.contains(child)) continue;
             String permission = prefix + "." + child.getName();
             registerCommandPermission(permission);
             Class c = CommandNode.class;
