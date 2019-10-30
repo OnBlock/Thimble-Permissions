@@ -61,9 +61,6 @@ public class PermissionMap {
         }
         return false;
     }
-    public boolean hasPermission(Permission permission, UUID player) {
-        return getPlayer(player).hasPermission(permission);
-    }
     public boolean hasPermission(String permission, UUID player) {
         return getPlayer(player).hasPermission(permission);
     }
