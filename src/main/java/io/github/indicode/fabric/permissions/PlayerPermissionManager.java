@@ -22,9 +22,6 @@ public class PlayerPermissionManager {
     public PlayerPermissionManager(PermissionMap permissionMap) {
         this.permissionMap = permissionMap;
     }
-    public boolean hasPermission(Permission permission) {
-        return hasPermission(permission.getFullIdentifier());
-    }
     public boolean hasPermission(String permission) {
         if (removedPermissions.contains(permission)) return false;
         if (permissionMap.defaultPermission.equals(permission)) return true;
@@ -32,9 +29,6 @@ public class PlayerPermissionManager {
         if (permissions.contains(permission)) return true;
         for (String here : permissions) {
             if (permissionMap.isInherited(here, permission)) return true;
-        }
-        for (String removedPermission : removedPermissions) {
-            if (permissionMap.isInherited(removedPermission, permission)) return false;
         }
         return false;
     }
@@ -55,7 +49,6 @@ public class PlayerPermissionManager {
             if (permissionMap.isInherited(permission, here)) iterator.remove();
         }
         this.permissions.add(permission);
-        this.permissionMap.getPermission(permission);
         return this;
     }
     @Deprecated
