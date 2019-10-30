@@ -51,7 +51,7 @@ public class PermissionMap {
         return permission != null && !permission.isEmpty() && permissions.containsKey(permission);
     }
     public boolean isChildOrSame(String parent, String child) {
-        return child.startsWith(parent);
+        return child != null && parent != null && child.startsWith(parent);
     }
     public Permission getPermissionData(String permission) {
         return permissions.get(permission);
