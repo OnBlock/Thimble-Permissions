@@ -102,7 +102,7 @@ public class PermissionCommand {
                 if (!context.getSource().getName().equals(player.getGameProfile().getName())) player.sendMessage(new LiteralText(context.getSource().getName() + " " + (enabled ? "has given you the" : "has taken away your") + " \"" + permission + "\" permission.").formatted(enabled ? Formatting.GREEN : Formatting.RED));
                 if (enabled) Thimble.PERMISSIONS.getPlayer(player.getGameProfile().getId()).permission(permission);
                 else Thimble.PERMISSIONS.getPlayer(player.getGameProfile().getId()).removePermission(permission);
-                //permission.onStateChanged(player, enabled);
+                Thimble.PERMISSIONS.updatePermissionStateHandlers(permission, player);
             }
         }
         return 0;

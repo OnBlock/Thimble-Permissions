@@ -7,6 +7,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.StringTag;
 import net.minecraft.nbt.Tag;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Pair;
 
 import java.lang.reflect.InvocationTargetException;
@@ -33,6 +34,11 @@ public class PermissionMap {
         if (permissionExists(permission)) return false;
         permissions.put(permission, new Permission(behaviors));
         return true;
+    }
+    public void updatePermissionStateHandlers(String permission, ServerPlayerEntity target) {
+        for (PermChangeBehavior behavior : getPermissionData(permission).behaviors) {
+            behavior.onStateChange(hasPermission(permission, target.getGameProfile().getId()), target);
+        }
     }
     public boolean permissionExists(String permission) {
         if (permission == null || permission.isEmpty()) return false;
