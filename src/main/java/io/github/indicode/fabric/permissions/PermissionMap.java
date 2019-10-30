@@ -48,7 +48,7 @@ public class PermissionMap {
         return false;
     }
     public boolean isChildOrSame(String parent, String child) {
-        return child.contains(parent);
+        return child.startsWith(parent);
     }
     public Permission getPermissionData(String permission) {
         return permissions.get(permission);
