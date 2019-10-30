@@ -89,24 +89,24 @@ public class PermissionCommand {
     }
     public static int checkPerm(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         ServerPlayerEntity player = EntityArgumentType.getPlayer(context, "player");
-        Permission permission = getPermission(StringArgumentType.getString(context,"permission"));
+        String permission = StringArgumentType.getString(context,"permission");
         boolean hasPerm = Thimble.PERMISSIONS.hasPermission(permission, player.getGameProfile().getId());
-        context.getSource().sendFeedback(new LiteralText(player.getGameProfile().getName() + " " + (hasPerm ? "has" : "does not have") + " the permission \"" + permission.getFullIdentifier() + "\""), false);
+        context.getSource().sendFeedback(new LiteralText(player.getGameProfile().getName() + " " + (hasPerm ? "has" : "does not have") + " the permission \"" + permission + "\""), false);
         return 0;
     }
     public static int setPerm(CommandContext<ServerCommandSource> context, boolean enabled) throws CommandSyntaxException {
         for (ServerPlayerEntity player : EntityArgumentType.getPlayers(context, "players")) {
-            Permission permission = getPermission(StringArgumentType.getString(context,"permission"));
+            String permission = StringArgumentType.getString(context,"permission");
             boolean hasPerm = Thimble.PERMISSIONS.hasPermission(permission, player.getGameProfile().getId());
             if (hasPerm == enabled) {
-                context.getSource().sendFeedback(new LiteralText(player.getGameProfile().getName() + " " + (enabled ? "already has" : "never had") + " the permission \"" + permission.getFullIdentifier() + "\"").formatted(Formatting.RED), false);
+                context.getSource().sendFeedback(new LiteralText(player.getGameProfile().getName() + " " + (enabled ? "already has" : "never had") + " the permission \"" + permission + "\"").formatted(Formatting.RED), false);
             } else {
-                context.getSource().sendFeedback(new LiteralText(player.getGameProfile().getName() + " " + (enabled ? "has been granted" : "no longer has") + " the permission \"" + permission.getFullIdentifier() + "\"").formatted(Formatting.GREEN), false);
-                context.getSource().getMinecraftServer().sendMessage(new LiteralText( "").append(context.getSource().getDisplayName()).append(new LiteralText(" has " + (enabled ? "granted" : "revoked") + " the permission \"" + permission.getFullIdentifier() + "\" for player " + player.getGameProfile().getName())));
-                if (!context.getSource().getName().equals(player.getGameProfile().getName())) player.sendMessage(new LiteralText(context.getSource().getName() + " " + (enabled ? "has given you the" : "has taken away your") + " \"" + permission.getFullIdentifier() + "\" permission.").formatted(enabled ? Formatting.GREEN : Formatting.RED));
+                context.getSource().sendFeedback(new LiteralText(player.getGameProfile().getName() + " " + (enabled ? "has been granted" : "no longer has") + " the permission \"" + permission + "\"").formatted(Formatting.GREEN), false);
+                context.getSource().getMinecraftServer().sendMessage(new LiteralText( "").append(context.getSource().getDisplayName()).append(new LiteralText(" has " + (enabled ? "granted" : "revoked") + " the permission \"" + permission + "\" for player " + player.getGameProfile().getName())));
+                if (!context.getSource().getName().equals(player.getGameProfile().getName())) player.sendMessage(new LiteralText(context.getSource().getName() + " " + (enabled ? "has given you the" : "has taken away your") + " \"" + permission + "\" permission.").formatted(enabled ? Formatting.GREEN : Formatting.RED));
                 if (enabled) Thimble.PERMISSIONS.getPlayer(player.getGameProfile().getId()).permission(permission);
                 else Thimble.PERMISSIONS.getPlayer(player.getGameProfile().getId()).removePermission(permission);
-                permission.onStateChanged(player, enabled);
+                //permission.onStateChanged(player, enabled);
             }
         }
         return 0;
@@ -115,10 +115,5 @@ public class PermissionCommand {
         RequiredArgumentBuilder<ServerCommandSource, String> builder = RequiredArgumentBuilder.argument(name, StringArgumentType.word());
         builder.suggests(SUGGESTIONS_BUILDER);
         return builder;
-    }
-    public static Permission getPermission(String perm) throws CommandException {
-        Map<String, Permission> permissionMap = Thimble.PERMISSIONS.mapPermissions(Thimble.PERMISSIONS.getRegisteredPermissions());
-        if (!permissionMap.containsKey(perm)) throw new CommandException(new LiteralText("\"" + perm + "\" is not a permission.").formatted(Formatting.RED));
-        else return permissionMap.get(perm);
     }
 }
