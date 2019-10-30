@@ -25,7 +25,7 @@ import java.util.function.Predicate;
  */
 public class PermissionCommand {
     public static final SuggestionProvider SUGGESTIONS_BUILDER = (source, builder) -> {
-        Thimble.PERMISSIONS.mapPermissions(Thimble.PERMISSIONS.getRegisteredPermissions()).keySet().forEach(it -> {
+        Thimble.PERMISSIONS.getRegisteredPermissions().forEach(it -> {
             if (it.startsWith(builder.getRemaining())) builder.suggest(it);
         });
         return builder.buildFuture();
