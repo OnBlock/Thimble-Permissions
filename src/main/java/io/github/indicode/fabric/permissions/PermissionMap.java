@@ -107,7 +107,7 @@ public class PermissionMap {
         Map<String, Permission> newPermissions = new HashMap();
         for (Iterator<Map.Entry<String, DefaultedJsonObject>> iterator = permissionMap.entrySet().iterator(); iterator.hasNext(); ) {
             Map.Entry<String, DefaultedJsonObject> entry = iterator.next();
-            if (existingPermissions.contains(entry.getKey())) {
+            if (permissionExists(entry.getKey())) {
                 continue;
             }
             Permission permission = new Permission();
@@ -130,7 +130,7 @@ public class PermissionMap {
             }
             newPermissions.put(entry.getKey(), permission);
         }
-        permissions.putAll(newPermissions); // TODO dont overwrite old perms
+        permissions.putAll(newPermissions);
         defaultPermission = tree.getString("*", (String)null);
         if (defaultPermission != null && !defaultPermission.equals("null")) {
             if (!permissionMap.containsKey(defaultPermission) && !existingPermissions.contains(defaultPermission)) {
