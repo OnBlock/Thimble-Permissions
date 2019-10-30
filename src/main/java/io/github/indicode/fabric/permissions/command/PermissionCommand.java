@@ -31,9 +31,6 @@ public class PermissionCommand {
         return builder.buildFuture();
     };
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
-        Thimble.registerCommandPermission("thimble.check");
-        Thimble.registerCommandPermission("thimble.modify");
-        Thimble.registerCommandPermission("thimble.reload");
         LiteralArgumentBuilder<ServerCommandSource> builder = CommandManager.literal("permission").requires(source -> Thimble.hasPermissionOrOp(source, "thimble.check", 2) || Thimble.hasPermissionOrOp(source, "thimble.modify", 4));
         {
             LiteralArgumentBuilder<ServerCommandSource> check = CommandManager.literal("check");
@@ -105,7 +102,9 @@ public class PermissionCommand {
                 if (!context.getSource().getName().equals(player.getGameProfile().getName())) player.sendMessage(new LiteralText(context.getSource().getName() + " " + (enabled ? "has given you the" : "has taken away your") + " \"" + permission + "\" permission.").formatted(enabled ? Formatting.GREEN : Formatting.RED));
                 if (enabled) Thimble.PERMISSIONS.getPlayer(player.getGameProfile().getId()).permission(permission);
                 else Thimble.PERMISSIONS.getPlayer(player.getGameProfile().getId()).removePermission(permission);
+                System.out.println("Foo");
                 Thimble.PERMISSIONS.updatePermissionStateHandlers(permission, player);
+                System.out.println("Bar");
             }
         }
         return 0;

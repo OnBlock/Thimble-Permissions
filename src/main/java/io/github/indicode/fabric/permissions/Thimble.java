@@ -61,6 +61,9 @@ public class Thimble implements ModInitializer {
             registerCommandPermission("minecraft");
             registerCommandPermission("minecraft.command");
             registerCommandPermission("thimble");
+            Thimble.registerCommandPermission("thimble.check");
+            Thimble.registerCommandPermission("thimble.modify");
+            Thimble.registerCommandPermission("thimble.reload");
             if (!vanillaDispatcherDisabled) registerDispatcherCommands("minecraft.command", server.getCommandManager().getDispatcher());
         });
     }

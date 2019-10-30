@@ -9,5 +9,6 @@ public class Permission {
 
     public Permission(PermChangeBehavior... behaviors) {
         this.behaviors = behaviors;
+        if (behaviors == null) this.behaviors = new PermChangeBehavior[0];
     }
 }
