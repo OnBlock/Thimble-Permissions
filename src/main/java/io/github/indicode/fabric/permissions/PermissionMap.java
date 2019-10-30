@@ -20,6 +20,9 @@ public class PermissionMap {
     protected Map<UUID, PlayerPermissionManager> permissionMap = new HashMap<>();
     protected Map<String, Permission> permissions = new HashMap();
     protected String defaultPermission = null;
+    public boolean defaultPermissionMatches(String permission) {
+        return defaultPermission != null && defaultPermission.equals(permission);
+    }
     public ImmutableList<String> getRegisteredPermissions() {
         return ImmutableList.copyOf(permissions.keySet());
     }

@@ -24,7 +24,7 @@ public class PlayerPermissionManager {
     }
     public boolean hasPermission(String permission) {
         if (removedPermissions.contains(permission)) return false;
-        if (permissionMap.defaultPermission.equals(permission)) return true;
+        if (permissionMap.defaultPermissionMatches(permission)) return true;
         if (permissionMap.isInherited(permissionMap.defaultPermission, permission)) return true;
         if (permissions.contains(permission)) return true;
         for (String here : permissions) {
