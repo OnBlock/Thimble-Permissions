@@ -32,11 +32,18 @@ public class PermissionMap {
         permissionMap.put(uuid, manager);
         return manager;
     }
-    public boolean registerPermission(String permission, PermChangeBehavior... behaviors) {
-        if (permission == null || permission.isEmpty()) return false;
-        if (permissionExists(permission)) return false;
+    public void registerPermission(String permission, PermChangeBehavior... behaviors) {
+        if (permission == null || permission.isEmpty()) {
+            throw new IllegalArgumentException("Permission cannot be null or empty.");
+        }
+        if (permissionExists(permission)) {
+            throw new IllegalStateException(String.format("Permission \"%s\" is already defined."));
+        }
         permissions.put(permission, new Permission(behaviors));
-        return true;
+        String removeTop = permission.substring(0, permission.lastIndexOf(permission.split("[.]")[permission.split("[.]").length - 1]));
+        if (!removeTop.isEmpty() && !permissionExists(removeTop)) {
+            registerPermission(removeTop);
+        }
     }
     public void updatePermissionStateHandlers(String permission, ServerPlayerEntity target) {
         Permission data = getPermissionData(permission);
