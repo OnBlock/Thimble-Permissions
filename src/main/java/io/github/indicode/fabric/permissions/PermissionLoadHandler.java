@@ -12,9 +12,12 @@ import net.minecraft.util.Pair;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Map;
+import java.util.UUID;
 
 public class PermissionLoadHandler extends NBTWorldData {
     public static MinecraftServer server;
+    public static boolean reloading = false;
 
     @Override
     public File getSaveFile(File worldDir, File runDir, boolean backup) {
@@ -24,6 +27,7 @@ public class PermissionLoadHandler extends NBTWorldData {
     @Override
     public void onWorldLoad(File file, File file1) {
         File perms = new File(file, "permissions.json");
+        Map<UUID, PlayerPermissionManager> oldmap = Thimble.PERMISSIONS.permissionMap;
         Thimble.PERMISSIONS = new PermissionMap();
         Thimble.LOGGER.debug("Running mod permission injectors");
         Thimble.permissionWriters.forEach(consumer -> consumer.accept(Thimble.PERMISSIONS, server));
@@ -41,7 +45,12 @@ public class PermissionLoadHandler extends NBTWorldData {
             System.exit(1);
         }
         Thimble.LOGGER.debug("Loading player permissions");
-        super.onWorldLoad(file, file1);
+        if (reloading) {
+            Thimble.PERMISSIONS.permissionMap = oldmap;
+        } else {
+            super.onWorldLoad(file, file1);
+        }
+        reloading = true;
     }
 
     @Override
