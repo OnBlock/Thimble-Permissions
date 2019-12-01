@@ -93,6 +93,10 @@ public class PermissionCommand {
     public static int setPerm(CommandContext<ServerCommandSource> context, boolean enabled) throws CommandSyntaxException {
         for (ServerPlayerEntity player : EntityArgumentType.getPlayers(context, "players")) {
             String permission = StringArgumentType.getString(context,"permission");
+            if (Thimble.PERMISSIONS.defaultPermissionMatches(permission)) {
+                context.getSource().sendFeedback(new LiteralText("You cannot modify the default permission").formatted(Formatting.DARK_RED), false);
+                return 0;
+            }
             boolean hasPerm = Thimble.PERMISSIONS.hasPermission(permission, player.getGameProfile().getId());
             if (hasPerm == enabled) {
                 context.getSource().sendFeedback(new LiteralText(player.getGameProfile().getName() + " " + (enabled ? "already has" : "never had") + " the permission \"" + permission + "\"").formatted(Formatting.RED), false);
