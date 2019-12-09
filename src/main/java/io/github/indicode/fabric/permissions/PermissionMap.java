@@ -55,6 +55,11 @@ public class PermissionMap {
                 updatePermissionStateHandlers(inherit, target);
             }
         }
+        for (String child: permissions.keySet()) {
+            if (isChildOrSame(permission, child)) {
+                updatePermissionStateHandlers(child, target);
+            }
+        }
     }
     public boolean permissionExists(String permission) {
         return permission != null && !permission.isEmpty() && permissions.containsKey(permission);
@@ -68,8 +73,8 @@ public class PermissionMap {
     public boolean isInherited(String permission, String inherited) {
         if (permission == null) return false;
         Permission permission_ = getPermissionData(permission);
-        if (permission_ == null) return false;
         if (isChildOrSame(permission, inherited)) return true;
+        if (permission_ == null) return false;
         for (String inherit : permission_.inheritance) {
             if (isChildOrSame(inherit, inherited))  return true;
             if (isInherited(inherit, inherited))  return true;
