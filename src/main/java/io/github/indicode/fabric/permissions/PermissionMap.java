@@ -56,7 +56,7 @@ public class PermissionMap {
             }
         }
         for (String child: permissions.keySet()) {
-            if (child.startsWith(permission)) {
+            if (!child.equals(permission) && child.startsWith(permission)) {
                 updatePermissionStateHandlers(child, target);
             }
         }
