@@ -51,9 +51,9 @@ public class PermissionMap {
             for (PermChangeBehavior behavior : data.behaviors) {
                 behavior.onStateChange(hasPermission(permission, target.getGameProfile().getId()), target);
             }
-        }
-        for (String inherit : data.inheritance) {
-            updatePermissionStateHandlers(inherit, target);
+            for (String inherit : data.inheritance) {
+                updatePermissionStateHandlers(inherit, target);
+            }
         }
     }
     public boolean permissionExists(String permission) {
