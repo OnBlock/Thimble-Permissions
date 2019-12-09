@@ -47,8 +47,10 @@ public class PermissionMap {
     }
     public void updatePermissionStateHandlers(String permission, ServerPlayerEntity target) {
         Permission data = getPermissionData(permission);
-        for (PermChangeBehavior behavior : getPermissionData(permission).behaviors) {
-            behavior.onStateChange(hasPermission(permission, target.getGameProfile().getId()), target);
+        if (data != null) {
+            for (PermChangeBehavior behavior : data.behaviors) {
+                behavior.onStateChange(hasPermission(permission, target.getGameProfile().getId()), target);
+            }
         }
         for (String inherit : data.inheritance) {
             updatePermissionStateHandlers(inherit, target);
