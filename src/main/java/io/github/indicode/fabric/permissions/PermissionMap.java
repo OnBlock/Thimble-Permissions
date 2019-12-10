@@ -56,7 +56,7 @@ public class PermissionMap {
             }
         }
         for (String child: permissions.keySet()) {
-            if (!child.equals(permission) && child.startsWith(permission)) {
+            if (isChild(permission, child)) {
                 updatePermissionStateHandlers(child, target);
             }
         }
@@ -64,8 +64,21 @@ public class PermissionMap {
     public boolean permissionExists(String permission) {
         return permission != null && !permission.isEmpty() && permissions.containsKey(permission);
     }
+    public boolean isChild(String parent, String child) {
+        return parent != null && child != null && !parent.equals(child) && isChildOrSame(parent, child);
+    }
     public boolean isChildOrSame(String parent, String child) {
-        return child != null && parent != null && child.startsWith(parent);
+        if (child != null && parent != null && child.startsWith(parent)) {
+            String[] split = parent.split("[.]");
+            String[] csplit = child.split("[.]");
+            for (int i = 0; i < split.length; i++) {
+                if (!split[i].equals(csplit[i])) {
+                    return false;
+                }
+            }
+            return true;
+        }
+        return false;
     }
     public Permission getPermissionData(String permission) {
         return permissions.get(permission);
