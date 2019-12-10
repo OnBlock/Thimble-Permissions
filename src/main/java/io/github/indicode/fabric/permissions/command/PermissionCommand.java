@@ -49,32 +49,38 @@ public class PermissionCommand {
         }
         {
             Predicate<ServerCommandSource> modifyPredicate = source -> Thimble.hasPermissionOrOp(source, "thimble.modify", 4);
-            LiteralArgumentBuilder<ServerCommandSource> set = CommandManager.literal("set");
-            set.requires(modifyPredicate);
-            LiteralArgumentBuilder<ServerCommandSource> grant = CommandManager.literal("grant");
-            grant.requires(modifyPredicate);
-            LiteralArgumentBuilder<ServerCommandSource> revoke = CommandManager.literal("revoke");
-            revoke.requires(modifyPredicate);
-            ArgumentBuilder player = CommandManager.argument("players", EntityArgumentType.players());
-            ArgumentBuilder permission = permissionArgumentBuilder("permission");
-            ArgumentBuilder playerGrant = CommandManager.argument("players", EntityArgumentType.players());
-            ArgumentBuilder permissionGrant = permissionArgumentBuilder("permission");
-            permissionGrant.executes(context -> setPerm(context, true));
-            ArgumentBuilder playerRevoke = CommandManager.argument("players", EntityArgumentType.players());
-            ArgumentBuilder permissionRevoke = permissionArgumentBuilder("permission");
-            permissionRevoke.executes(context -> setPerm(context, false));
-            ArgumentBuilder enabled = CommandManager.argument("enabled", BoolArgumentType.bool());
-            enabled.executes(context -> setPerm(context, BoolArgumentType.getBool(context, "enabled")));
-            permission.then(enabled);
-            player.then(permission);
-            playerGrant.then(permissionGrant);
-            playerRevoke.then(permissionRevoke);
-            revoke.then(playerRevoke);
-            grant.then(playerGrant);
-            set.then(player);
-            builder.then(set);
-            builder.then(grant);
-            builder.then(revoke);
+            {
+                LiteralArgumentBuilder<ServerCommandSource> set = CommandManager.literal("set");
+                set.requires(modifyPredicate);
+                ArgumentBuilder player = CommandManager.argument("players", EntityArgumentType.players());
+                ArgumentBuilder permission = permissionArgumentBuilder("permission");
+                ArgumentBuilder enabled = CommandManager.argument("enabled", BoolArgumentType.bool());
+                enabled.executes(context -> setPerm(context, BoolArgumentType.getBool(context, "enabled")));
+                permission.then(enabled);
+                player.then(permission);
+                set.then(player);
+                builder.then(set);
+            }
+            {
+                LiteralArgumentBuilder<ServerCommandSource> grant = CommandManager.literal("grant");
+                grant.requires(modifyPredicate);
+                ArgumentBuilder player = CommandManager.argument("players", EntityArgumentType.players());
+                ArgumentBuilder permission = permissionArgumentBuilder("permission");
+                permission.executes(context -> setPerm(context, true));
+                player.then(permission);
+                grant.then(player);
+                builder.then(grant);
+            }
+            {
+                LiteralArgumentBuilder<ServerCommandSource> revoke = CommandManager.literal("revoke");
+                revoke.requires(modifyPredicate);
+                ArgumentBuilder player = CommandManager.argument("players", EntityArgumentType.players());
+                ArgumentBuilder permission = permissionArgumentBuilder("permission");
+                permission.executes(context -> setPerm(context, false));
+                player.then(permission);
+                revoke.then(player);
+                builder.then(revoke);
+            }
         }
         {
             LiteralArgumentBuilder<ServerCommandSource> reload = CommandManager.literal("reload");
@@ -93,7 +99,7 @@ public class PermissionCommand {
         String permission = StringArgumentType.getString(context,"permission");
         boolean hasPerm = Thimble.PERMISSIONS.hasPermission(permission, player.getGameProfile().getId());
         context.getSource().sendFeedback(new LiteralText(player.getGameProfile().getName() + " " + (hasPerm ? "has" : "does not have") + " the permission \"" + permission + "\""), false);
-        return 0;
+        return 1;
     }
     public static int setPerm(CommandContext<ServerCommandSource> context, boolean enabled) throws CommandSyntaxException {
         for (ServerPlayerEntity player : EntityArgumentType.getPlayers(context, "players")) {
@@ -114,7 +120,7 @@ public class PermissionCommand {
                 Thimble.PERMISSIONS.updatePermissionStateHandlers(permission, player);
             }
         }
-        return 0;
+        return 1;
     }
     public static ArgumentBuilder permissionArgumentBuilder(String name) {
         RequiredArgumentBuilder<ServerCommandSource, String> builder = RequiredArgumentBuilder.argument(name, StringArgumentType.word());
