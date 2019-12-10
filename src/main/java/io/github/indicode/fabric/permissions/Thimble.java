@@ -15,11 +15,8 @@ import org.apache.logging.log4j.message.MessageFactory;
 import org.apache.logging.log4j.message.SimpleMessage;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.function.BiConsumer;
 
 /**
@@ -57,6 +54,9 @@ public class Thimble implements ModInitializer {
     public void onInitialize() {
         WorldDataLib.addIOCallback(loadHandler);
         Config.sync(false);
+
+        LOGGER.info("Initializing Thimble permission Manager");
+
         permissionWriters.add((map, server) -> {
             registerCommandPermission("minecraft");
             registerCommandPermission("minecraft.command");
@@ -67,32 +67,37 @@ public class Thimble implements ModInitializer {
             if (!vanillaDispatcherDisabled) registerDispatcherCommands("minecraft.command", server.getCommandManager().getDispatcher());
         });
     }
+
     public static void registerCommandPermission(String permission) {
         PERMISSIONS.registerPermission(permission.replace(":", "_"), PermChangeBehavior.UPDATE_COMMAND_TREE);
     }
+
     public static void registerDispatcherCommands(String prefix, CommandDispatcher<ServerCommandSource> dispatcher) {
         for (CommandNode<ServerCommandSource> child : dispatcher.getRoot().getChildren()) {
             String permission = prefix + "." + child.getName();
             registerCommandPermission(permission);
             Class c = CommandNode.class;
+
             try {
                 Field requirement = c.getDeclaredField("requirement");
                 requirement.setAccessible(true);
                 requirement.set(child, child.getRequirement().or(source -> {
                     try {
                         return (source.getEntity() != null && source.getEntity() instanceof PlayerEntity && Thimble.PERMISSIONS.hasPermission(permission, source.getPlayer().getGameProfile().getId()));
-                    } catch (CommandSyntaxException e) {
-                        // ignore
+                    } catch (CommandSyntaxException ignored) {
                     }
                     return false;
                 }));
+
             } catch (NoSuchFieldException | IllegalAccessException e) {
                 e.printStackTrace(); // Should never happen
             }
         }
     }
     public static boolean hasPermissionOrOp(ServerCommandSource source, String permission, int opLevel) {
-        if(source.hasPermissionLevel(opLevel)) return true;
+        if (source.hasPermissionLevel(opLevel))
+            return true;
+
         try {
             return Thimble.PERMISSIONS.hasPermission(permission, source.getPlayer().getGameProfile().getId());
         } catch (CommandSyntaxException e) {

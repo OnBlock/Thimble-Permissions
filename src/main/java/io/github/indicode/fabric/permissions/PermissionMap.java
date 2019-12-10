@@ -8,9 +8,7 @@ import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.StringTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.util.Pair;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 
 /**
