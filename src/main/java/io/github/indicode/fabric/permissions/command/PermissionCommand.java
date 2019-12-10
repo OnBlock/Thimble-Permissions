@@ -26,7 +26,12 @@ import java.util.function.Predicate;
 public class PermissionCommand {
     public static final SuggestionProvider SUGGESTIONS_BUILDER = (source, builder) -> {
         Thimble.PERMISSIONS.getRegisteredPermissions().forEach(it -> {
-            if (it.startsWith(builder.getRemaining())) builder.suggest(it);
+            for (String split : it.split("[.]")) {
+                if (split.startsWith(builder.getRemaining())) {
+                    builder.suggest(it);
+                    break;
+                }
+            }
         });
         return builder.buildFuture();
     };
