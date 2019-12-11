@@ -29,14 +29,13 @@ import java.util.function.Predicate;
 public class PermissionCommand {
     public static final SuggestionProvider SUGGESTIONS_BUILDER = (source, builder) -> {
         Thimble.PERMISSIONS.getRegisteredPermissions().forEach(it -> {
-            //if (!it.contains(builder.getRemaining())) return;
             String[] inputted = builder.getRemaining().split("[.]");
             String[] perm = it.split("[.]");
             for (int i = 0; i < perm.length; i++) {
                 String permP = perm[i];
                 if (permP.startsWith(inputted[0])) {
                     if (i + inputted.length <= perm.length && perm[i + inputted.length - 1].startsWith(inputted[inputted.length - 1])) {
-                        if (i + inputted.length == perm.length) {
+                        if (i + inputted.length == perm.length && it.contains(builder.getRemaining())) {
                             builder.suggest(it);
                         } else if (builder.getRemaining().endsWith(".") && !it.substring(builder.getRemaining().length()).contains(".")) {
                             builder.suggest(it);
