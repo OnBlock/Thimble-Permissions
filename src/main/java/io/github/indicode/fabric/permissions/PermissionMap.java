@@ -68,7 +68,11 @@ public class PermissionMap {
         return parent != null && child != null && !parent.equals(child) && isChildOrSame(parent, child);
     }
     public boolean isChildOrSame(String parent, String child) {
-        if (child != null && parent != null && child.startsWith(parent)) {
+
+        if (child != null && parent != null && (parent.equals("*") || child.startsWith(parent))) {
+            if (parent.equals("*")) {
+                return true;
+            }
             String[] split = parent.split("[.]");
             String[] csplit = child.split("[.]");
             for (int i = 0; i < split.length; i++) {
@@ -81,7 +85,7 @@ public class PermissionMap {
         return false;
     }
     public Permission getPermissionData(String permission) {
-        return permissions.get(permission);
+        return permission.equals("*") ? new Permission(PermChangeBehavior.UPDATE_COMMAND_TREE) : permissions.get(permission);
     }
     public boolean isInherited(String permission, String inherited) {
         if (permission == null) return false;
