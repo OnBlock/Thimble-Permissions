@@ -28,10 +28,20 @@ import java.util.function.Predicate;
 public class PermissionCommand {
     public static final SuggestionProvider SUGGESTIONS_BUILDER = (source, builder) -> {
         Thimble.PERMISSIONS.getRegisteredPermissions().forEach(it -> {
-            for (String split : it.split("[.]")) {
-                if (split.startsWith(builder.getRemaining())) {
-                    builder.suggest(it);
-                    break;
+            //if (!it.contains(builder.getRemaining())) return;
+            String[] inputted = builder.getRemaining().split("[.]");
+            String[] perm = it.split("[.]");
+            for (int i = 0; i < perm.length; i++) {
+                String permP = perm[i];
+                if (permP.startsWith(inputted[0])) {
+                    if (i + inputted.length <= perm.length && perm[i + inputted.length - 1].startsWith(inputted[inputted.length - 1])) {
+                        if (i + inputted.length == perm.length) {
+                            builder.suggest(it);
+                        } else if (builder.getRemaining().endsWith(".") && !it.substring(builder.getRemaining().length()).contains(".")) {
+                            builder.suggest(it);
+                        }
+                        break;
+                    }
                 }
             }
         });
@@ -143,6 +153,7 @@ public class PermissionCommand {
         context.getSource().sendFeedback(new LiteralText(player.getGameProfile().getName() + " " + (hasPerm ? "has" : "does not have") + " the permission \"" + permission + "\""), false);
         return 1;
     }
+
     public static int checkPermOffline(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         UUID playerID = OfflineInfo.getUUID(context, "oplayer");
         if (playerID == null) {
