@@ -204,7 +204,7 @@ public class PermissionCommand {
             context.getSource().sendFeedback(new LiteralText("That is not a valid player").formatted(Formatting.RED), false);
             return 0;
         }
-        String playerName = StringArgumentType.getString(context, "oplayer");
+        String playerName = StringArgumentType.getString(context, "player");
         boolean hasPerm = Thimble.PERMISSIONS.hasPermission(permission, playerID);
         context.getSource().sendFeedback(new LiteralText(playerName + " " + (hasPerm ? "has" : "does not have") + " the permission \"" + permission + "\""), false);
         return 1;
