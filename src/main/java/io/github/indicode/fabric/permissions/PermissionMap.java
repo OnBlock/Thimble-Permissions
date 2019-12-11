@@ -40,9 +40,12 @@ public class PermissionMap {
             throw new IllegalStateException(String.format("Permission \"%s\" is already defined."));
         }
         permissions.put(permission, new Permission(behaviors));
-        String removeTop = permission.substring(0, permission.lastIndexOf(permission.split("[.]")[permission.split("[.]").length - 1]));
-        if (!removeTop.isEmpty() && !permissionExists(removeTop)) {
-            registerPermission(removeTop);
+        int index = permission.lastIndexOf(permission.split("[.]")[permission.split("[.]").length - 1]);
+        if (index > 0) {
+            String removeTop = permission.substring(0, index - 1);
+            if (!removeTop.isEmpty() && !permissionExists(removeTop)) {
+                registerPermission(removeTop);
+            }
         }
     }
     public void updatePermissionStateHandlers(String permission, ServerPlayerEntity target) {
