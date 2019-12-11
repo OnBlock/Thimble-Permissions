@@ -54,7 +54,7 @@ public class PermissionCommand {
             LiteralArgumentBuilder<ServerCommandSource> check = CommandManager.literal("check");
             check.requires(source -> Thimble.hasPermissionOrOp(source, "thimble.check", 2) || Thimble.hasPermissionOrOp(source, "thimble.modify", 4));
             {
-                ArgumentBuilder player = CommandManager.argument("player", EntityArgumentType.player());
+                ArgumentBuilder player = OfflineInfo.offlinePlayerArgumentBuilder("player");
                 {
                     ArgumentBuilder permission = permissionArgumentBuilder("permission");
                     permission.executes(PermissionCommand::checkPerm);
@@ -63,20 +63,6 @@ public class PermissionCommand {
                 {
                     LiteralArgumentBuilder permission = CommandManager.literal("*");
                     permission.executes(context -> PermissionCommand.checkPerm(context, "*"));
-                    player.then(permission);
-                }
-                check.then(player);
-            }
-            {
-                ArgumentBuilder player = OfflineInfo.offlinePlayerArgumentBuilder("oplayer");
-                {
-                    ArgumentBuilder permission = permissionArgumentBuilder("permission");
-                    permission.executes(PermissionCommand::checkPermOffline);
-                    player.then(permission);
-                }
-                {
-                    LiteralArgumentBuilder permission = CommandManager.literal("*");
-                    permission.executes(context -> PermissionCommand.checkPermOffline(context, "*"));
                     player.then(permission);
                 }
                 check.then(player);
@@ -213,17 +199,7 @@ public class PermissionCommand {
         return checkPerm(context, StringArgumentType.getString(context, "permission"));
     }
     public static int checkPerm(CommandContext<ServerCommandSource> context, String permission) throws CommandSyntaxException {
-        ServerPlayerEntity player = EntityArgumentType.getPlayer(context, "player");
-        boolean hasPerm = Thimble.PERMISSIONS.hasPermission(permission, player.getGameProfile().getId());
-        context.getSource().sendFeedback(new LiteralText(player.getGameProfile().getName() + " " + (hasPerm ? "has" : "does not have") + " the permission \"" + permission + "\""), false);
-        return 1;
-    }
-
-    public static int checkPermOffline(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
-        return checkPermOffline(context, StringArgumentType.getString(context, "permission"));
-    }
-    public static int checkPermOffline(CommandContext<ServerCommandSource> context, String permission) throws CommandSyntaxException {
-        UUID playerID = OfflineInfo.getUUID(context, "oplayer");
+        UUID playerID = OfflineInfo.getUUID(context, "player");
         if (playerID == null) {
             context.getSource().sendFeedback(new LiteralText("That is not a valid player").formatted(Formatting.RED), false);
             return 0;
