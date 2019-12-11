@@ -24,6 +24,7 @@ public class PlayerPermissionManager {
     }
     public boolean hasPermission(String permission) {
         if (removedPermissions.contains(permission)) return false;
+        if (permissions.contains("*")) return true;
         if (permissionMap.defaultPermissionMatches(permission)) return true;
         if (permissionMap.isInherited(permissionMap.defaultPermission, permission)) return true;
         if (permissions.contains(permission)) return true;
@@ -34,9 +35,9 @@ public class PlayerPermissionManager {
     }
     public PlayerPermissionManager removePermission(String permission) {
         if (permissions.contains(permission)) permissions.remove(permission);
-        else if (!removedPermissions.contains(permission)) {
+        /*else if (!removedPermissions.contains(permission)) {
             removedPermissions.add(permission);
-        }
+        }*/
         return this;
     }
     public PlayerPermissionManager permission(String permission) {

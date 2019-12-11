@@ -58,9 +58,6 @@ public class Thimble implements ModInitializer {
         WorldDataLib.addIOCallback(loadHandler);
         Config.sync(false);
         permissionWriters.add((map, server) -> {
-            registerCommandPermission("minecraft");
-            registerCommandPermission("minecraft.command");
-            registerCommandPermission("thimble");
             Thimble.registerCommandPermission("thimble.check");
             Thimble.registerCommandPermission("thimble.modify");
             Thimble.registerCommandPermission("thimble.reload");
