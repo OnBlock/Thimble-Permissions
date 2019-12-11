@@ -37,7 +37,7 @@ public class PermissionCommand {
                     if (i + inputted.length <= perm.length && perm[i + inputted.length - 1].startsWith(inputted[inputted.length - 1])) {
                         if (i + inputted.length == perm.length && it.contains(builder.getRemaining())) {
                             builder.suggest(it);
-                        } else if (builder.getRemaining().endsWith(".") && !it.substring(builder.getRemaining().length()).contains(".")) {
+                        } else if (builder.getRemaining().endsWith(".") && it.length() - builder.getRemaining().length() > 0 && !it.substring(builder.getRemaining().length() + 1).contains(".")) {
                             builder.suggest(it);
                         }
                         break;
