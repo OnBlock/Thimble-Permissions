@@ -34,7 +34,7 @@ public class PlayerPermissionManager {
         return false;
     }
     public PlayerPermissionManager removePermission(String permission) {
-        if (permissions.contains(permission)) permissions.remove(permission);
+        permissions.remove(permission);
         /*else if (!removedPermissions.contains(permission)) {
             removedPermissions.add(permission);
         }*/
@@ -44,10 +44,12 @@ public class PlayerPermissionManager {
         if (permission == null) return this;
         removedPermissions.remove(permission);
         if (permissions.contains(permission)) return this;
-        for (Iterator<String> iterator = permissions.iterator(); iterator.hasNext(); ) {
-            String here = iterator.next();
-            if (permissionMap.isInherited(here, permission)) return this;
-            if (permissionMap.isInherited(permission, here)) iterator.remove();
+        if (!permission.equals("*")) {
+            for (Iterator<String> iterator = permissions.iterator(); iterator.hasNext(); ) {
+                String here = iterator.next();
+                if (permissionMap.isInherited(here, permission)) return this;
+                if (permissionMap.isInherited(permission, here)) iterator.remove();
+            }
         }
         this.permissions.add(permission);
         return this;
