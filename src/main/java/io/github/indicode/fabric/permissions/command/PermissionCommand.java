@@ -9,6 +9,7 @@ import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
+import com.mojang.brigadier.tree.LiteralCommandNode;
 import io.github.indicode.fabric.permissions.Thimble;
 import io.github.voidpointerdev.minecraft.offlineinfo.OfflineInfo;
 import net.minecraft.command.arguments.EntityArgumentType;
@@ -143,7 +144,10 @@ public class PermissionCommand {
             });
             builder.then(reload);
         }
-        dispatcher.register(builder);
+        LiteralCommandNode<ServerCommandSource> node = dispatcher.register(builder);
+        LiteralArgumentBuilder<ServerCommandSource> thimble = CommandManager.literal("thimble");
+        thimble.redirect(node);
+        dispatcher.register(thimble);
     }
 
     public static int checkPerm(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
