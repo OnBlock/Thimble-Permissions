@@ -9,6 +9,8 @@ import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
+import com.mojang.brigadier.tree.ArgumentCommandNode;
+import com.mojang.brigadier.tree.CommandNode;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import io.github.indicode.fabric.permissions.Thimble;
 import io.github.voidpointerdev.minecraft.offlineinfo.OfflineInfo;
@@ -49,146 +51,105 @@ public class PermissionCommand {
     };
 
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
+        CommandNode permission = permissionArgumentBuilder("permission").build();
+        CommandNode allPermission = CommandManager.literal("*").build();
+        CommandNode players = CommandManager.argument("players", EntityArgumentType.players()).build();
+        CommandNode player = OfflineInfo.offlinePlayerArgumentBuilder("player").build();
         LiteralArgumentBuilder<ServerCommandSource> builder = CommandManager.literal("permission").requires(source -> Thimble.hasPermissionOrOp(source, "thimble.reload", 2) || Thimble.hasPermissionOrOp(source, "thimble.check", 2) || Thimble.hasPermissionOrOp(source, "thimble.modify", 4));
-        {
-            LiteralArgumentBuilder<ServerCommandSource> check = CommandManager.literal("check");
-            check.requires(source -> Thimble.hasPermissionOrOp(source, "thimble.check", 2) || Thimble.hasPermissionOrOp(source, "thimble.modify", 4));
-            {
-                ArgumentBuilder player = OfflineInfo.offlinePlayerArgumentBuilder("player");
-                {
-                    ArgumentBuilder permission = permissionArgumentBuilder("permission");
-                    permission.executes(PermissionCommand::checkPerm);
-                    player.then(permission);
-                }
-                {
-                    LiteralArgumentBuilder permission = CommandManager.literal("*");
-                    permission.executes(context -> PermissionCommand.checkPerm(context, "*"));
-                    player.then(permission);
-                }
-                check.then(player);
-            }
-            builder.then(check);
-        }
-        {
-            Predicate<ServerCommandSource> modifyPredicate = source -> Thimble.hasPermissionOrOp(source, "thimble.modify", 4);
-            {
-                LiteralArgumentBuilder<ServerCommandSource> set = CommandManager.literal("set");
-                set.requires(modifyPredicate);
-                {
-                    ArgumentBuilder player = CommandManager.argument("players", EntityArgumentType.players());
-                    {
-                        ArgumentBuilder permission = permissionArgumentBuilder("permission");
-                        ArgumentBuilder enabled = CommandManager.argument("enabled", BoolArgumentType.bool());
-                        enabled.executes(context -> setPerm(context, BoolArgumentType.getBool(context, "enabled")));
-                        permission.then(enabled);
-                        player.then(permission);
-                    }
-                    {
-                        LiteralArgumentBuilder permission = CommandManager.literal("*");
-                        ArgumentBuilder enabled = CommandManager.argument("enabled", BoolArgumentType.bool());
-                        enabled.executes(context -> setPerm(context, BoolArgumentType.getBool(context, "enabled"), "*"));
-                        permission.then(enabled);
-                        player.then(permission);
-                    }
-                    set.then(player);
-                }
-                {
-                    ArgumentBuilder player = OfflineInfo.offlinePlayerArgumentBuilder("player");
-                    {
-                        ArgumentBuilder permission = permissionArgumentBuilder("permission");
-                        ArgumentBuilder enabled = CommandManager.argument("enabled", BoolArgumentType.bool());
-                        enabled.executes(context -> setPermOffline(context, BoolArgumentType.getBool(context, "enabled")));
-                        permission.then(enabled);
-                        player.then(permission);
-                    }
-                    {
-                        LiteralArgumentBuilder permission = CommandManager.literal("*");
-                        ArgumentBuilder enabled = CommandManager.argument("enabled", BoolArgumentType.bool());
-                        enabled.executes(context -> setPermOffline(context, BoolArgumentType.getBool(context, "enabled"), "*"));
-                        permission.then(enabled);
-                        player.then(permission);
-                    }
-                    set.then(player);
-                }
-                builder.then(set);
-            }
-            {
-                LiteralArgumentBuilder<ServerCommandSource> grant = CommandManager.literal("grant");
-                grant.requires(modifyPredicate);
-                {
-                    ArgumentBuilder player = CommandManager.argument("players", EntityArgumentType.players());
-                    {
-                        ArgumentBuilder permission = permissionArgumentBuilder("permission");
-                        permission.executes(context -> setPerm(context, true));
-                        player.then(permission);
-                    }
-                    {
-                        LiteralArgumentBuilder permission = CommandManager.literal("*");
-                        permission.executes(context -> setPerm(context, true, "*"));
-                        player.then(permission);
-                    }
-                    grant.then(player);
-                }
-                {
-                    ArgumentBuilder player = OfflineInfo.offlinePlayerArgumentBuilder("player");
-                    {
-                        ArgumentBuilder permission = permissionArgumentBuilder("permission");
-                        permission.executes(context -> setPermOffline(context, true));
-                        player.then(permission);
-                    }
-                    {
-                        LiteralArgumentBuilder permission = CommandManager.literal("*");
-                        permission.executes(context -> setPermOffline(context, true, "*"));
-                        player.then(permission);
-                    }
-                    grant.then(player);
-                }
-                builder.then(grant);
-            }
-            {
-                LiteralArgumentBuilder<ServerCommandSource> revoke = CommandManager.literal("revoke");
-                revoke.requires(modifyPredicate);
-                {
-                    ArgumentBuilder player = CommandManager.argument("players", EntityArgumentType.players());
-                    {
-                        ArgumentBuilder permission = permissionArgumentBuilder("permission");
-                        permission.executes(context -> setPerm(context, false));
-                        player.then(permission);
-                    }
-                    {
-                        LiteralArgumentBuilder permission = CommandManager.literal("*");
-                        permission.executes(context -> setPerm(context, false, "*"));
-                        player.then(permission);
-                    }
-                    revoke.then(player);
-                }
-                {
-                    ArgumentBuilder player = OfflineInfo.offlinePlayerArgumentBuilder("player");
-                    {
-                        ArgumentBuilder permission = permissionArgumentBuilder("permission");
-                        permission.executes(context -> setPermOffline(context, false));
-                        player.then(permission);
-                    }
-                    {
-                        LiteralArgumentBuilder permission = CommandManager.literal("*");
-                        permission.executes(context -> setPermOffline(context, false, "*"));
-                        player.then(permission);
-                    }
-                    revoke.then(player);
-                }
-                builder.then(revoke);
-            }
-        }
-        {
-            LiteralArgumentBuilder<ServerCommandSource> reload = CommandManager.literal("reload");
-            reload.requires(source -> Thimble.hasPermissionOrOp(source, "thimble.reload", 2));
-            reload.executes(context -> {
-                context.getSource().sendFeedback(new LiteralText("Reloading permissions"), true);
-                Thimble.reload();
-                return 0;
-            });
-            builder.then(reload);
-        }
+
+        // Check
+        builder.then(
+                CommandManager.literal("check")
+                        .requires(source -> Thimble.hasPermissionOrOp(source, "thimble.check", 2) || Thimble.hasPermissionOrOp(source, "thimble.modify", 4))
+                        .then(
+                                player.createBuilder()
+                                        .then(
+                                                permission.createBuilder().executes(PermissionCommand::checkPerm))
+                                        .then(
+                                                allPermission.createBuilder().executes(context -> checkPerm(context, "*"))))
+        );
+        Predicate<ServerCommandSource> modifyPredicate = source -> Thimble.hasPermissionOrOp(source, "thimble.modify", 4);
+        // Set
+        builder.then(
+                CommandManager.literal("set")
+                        .requires(modifyPredicate)
+                        .then(
+                                players.createBuilder()
+                                        .then(
+                                            permission.createBuilder()
+                                                .then(
+                                                        CommandManager.argument("enabled", BoolArgumentType.bool())
+                                                            .executes(context -> setPerm(context, BoolArgumentType.getBool(context, "enabled")))))
+                                        .then(
+                                            allPermission.createBuilder()
+                                                    .then(
+                                                            CommandManager.argument("enabled", BoolArgumentType.bool())
+                                                                    .executes(context -> setPerm(context, BoolArgumentType.getBool(context, "enabled"), "*")))))
+                        .then(
+                                player.createBuilder()
+                                        .then(
+                                                permission.createBuilder()
+                                                        .then(
+                                                                CommandManager.argument("enabled", BoolArgumentType.bool())
+                                                                        .executes(context -> setPermOffline(context, BoolArgumentType.getBool(context, "enabled")))))
+                                        .then(
+                                                allPermission.createBuilder()
+                                                        .then(
+                                                                CommandManager.argument("enabled", BoolArgumentType.bool())
+                                                                        .executes(context -> setPermOffline(context, BoolArgumentType.getBool(context, "enabled"), "*")))))
+        );
+        // Grant
+        builder.then(
+                CommandManager.literal("grant")
+                        .requires(modifyPredicate)
+                        .then(
+                                players.createBuilder()
+                                        .then(
+                                                permission.createBuilder()
+                                                        .executes(context -> setPerm(context, true)))
+                                        .then(
+                                                allPermission.createBuilder()
+                                                        .executes(context -> setPerm(context, true, "*"))))
+                        .then(
+                                player.createBuilder()
+                                        .then(
+                                                permission.createBuilder()
+                                                        .executes(context -> setPermOffline(context, true)))
+                                        .then(
+                                                allPermission.createBuilder()
+                                                        .executes(context -> setPermOffline(context, true, "*"))))
+        );
+        // Revoke
+        builder.then(
+                CommandManager.literal("revoke")
+                        .requires(modifyPredicate)
+                        .then(
+                                players.createBuilder()
+                                        .then(
+                                                permission.createBuilder()
+                                                        .executes(context -> setPerm(context, false)))
+                                        .then(
+                                                allPermission.createBuilder()
+                                                        .executes(context -> setPerm(context, false, "*"))))
+                        .then(
+                                player.createBuilder()
+                                        .then(
+                                                permission.createBuilder()
+                                                        .executes(context -> setPermOffline(context, false)))
+                                        .then(
+                                                allPermission.createBuilder()
+                                                        .executes(context -> setPermOffline(context, false, "*"))))
+        );
+        // Reload
+        builder.then(
+                CommandManager.literal("reload")
+                        .requires(source -> Thimble.hasPermissionOrOp(source, "thimble.reload", 2))
+                        .executes(context -> {
+                            context.getSource().sendFeedback(new LiteralText("Reloading permissions"), true);
+                            Thimble.reload();
+                            return 0;
+                        })
+        );
         LiteralCommandNode<ServerCommandSource> node = dispatcher.register(builder);
         LiteralArgumentBuilder<ServerCommandSource> thimble = CommandManager.literal("thimble");
         thimble.redirect(node);
