@@ -17,13 +17,13 @@ import java.util.List;
  */
 public class PlayerPermissionManager {
     protected List<String> permissions = new ArrayList<>();
-    protected List<String> removedPermissions = new ArrayList<>();
+    protected List<String> revokedPermissions = new ArrayList<>();
     public PermissionMap permissionMap;
     public PlayerPermissionManager(PermissionMap permissionMap) {
         this.permissionMap = permissionMap;
     }
     public boolean hasPermission(String permission) {
-        if (removedPermissions.contains(permission)) return false;
+        if (revokedPermissions.contains(permission)) return false;
         if (permissions.contains("*")) return true;
         if (permissionMap.defaultPermissionMatches(permission)) return true;
         if (permissionMap.isInherited(permissionMap.defaultPermission, permission)) return true;
@@ -33,16 +33,25 @@ public class PlayerPermissionManager {
         }
         return false;
     }
-    public PlayerPermissionManager removePermission(String permission) {
+    public boolean hasExactPermission(String permission) {
+        if (revokedPermissions.contains(permission)) return false;
+        return permissions.contains(permission);
+    }
+    public PlayerPermissionManager revokePermission(String permission) {
         permissions.remove(permission);
-        /*else if (!removedPermissions.contains(permission)) {
-            removedPermissions.add(permission);
-        }*/
+        if (!revokedPermissions.contains(permission)) {
+            revokedPermissions.add(permission);
+        }
         return this;
     }
-    public PlayerPermissionManager permission(String permission) {
+    public PlayerPermissionManager resetPermission(String permission) {
+        permissions.remove(permission);
+        revokedPermissions.remove(permission);
+        return this;
+    }
+    public PlayerPermissionManager grantPermission(String permission) {
         if (permission == null) return this;
-        removedPermissions.remove(permission);
+        revokedPermissions.remove(permission);
         if (permissions.contains(permission)) return this;
         if (!permission.equals("*")) {
             for (Iterator<String> iterator = permissions.iterator(); iterator.hasNext(); ) {
@@ -56,14 +65,14 @@ public class PlayerPermissionManager {
     }
     @Deprecated
     public JsonElement toJson() {
-        if (removedPermissions.isEmpty()) {
+        if (revokedPermissions.isEmpty()) {
             DefaultedJsonArray permArray = new DefaultedJsonArray();
             permissions.forEach(permission -> permArray.add(new JsonPrimitive(permission)));
             return permArray;
         } else {
             DefaultedJsonObject jsonObject = new DefaultedJsonObject();
             DefaultedJsonArray rpermArray = new DefaultedJsonArray();
-            removedPermissions.forEach(perm -> {
+            revokedPermissions.forEach(perm -> {
                 if (perm != null) rpermArray.add(new JsonPrimitive(perm));
             });
             jsonObject.set("removed_permissions", rpermArray);
@@ -77,9 +86,9 @@ public class PlayerPermissionManager {
     }
     public CompoundTag toNBT() {
         CompoundTag tag = new CompoundTag();
-        if (!removedPermissions.isEmpty()) {
+        if (!revokedPermissions.isEmpty()) {
             ListTag removed = new ListTag();
-            removedPermissions.forEach(permission -> removed.add(StringTag.of(permission)));
+            revokedPermissions.forEach(permission -> removed.add(StringTag.of(permission)));
             tag.put("removed", removed);
         }
         if (!permissions.isEmpty()) {

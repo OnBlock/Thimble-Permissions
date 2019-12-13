@@ -224,7 +224,7 @@ public class PermissionMap {
                         Thimble.LOGGER.warn(String.format("Unrecognised removed permission \"%s\" found for player %s", perm, key));
                         continue;
                     }
-                    player.removePermission(perm);
+                    player.resetPermission(perm);
                 }
             }
             ListTag granted = (ListTag) entry.get("granted");
@@ -239,7 +239,7 @@ public class PermissionMap {
                         Thimble.LOGGER.warn(String.format("Unrecognised permission \"%s\" found for player %s", perm, key));
                         continue;
                     }
-                    player.permission(perm);
+                    player.grantPermission(perm);
                 }
             }
         }
