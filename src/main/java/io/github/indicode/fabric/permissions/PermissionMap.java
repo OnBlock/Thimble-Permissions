@@ -23,6 +23,12 @@ public class PermissionMap {
     public boolean defaultPermissionMatches(String permission) {
         return defaultPermission != null && defaultPermission.equals(permission);
     }
+    public boolean isGrantedByDefault(String permission) {
+        return defaultPermission != null && isInherited(defaultPermission, permission);
+    }
+    public String getDefaultPermission() {
+        return defaultPermission;
+    }
     public ImmutableList<String> getRegisteredPermissions() {
         return ImmutableList.copyOf(permissions.keySet());
     }

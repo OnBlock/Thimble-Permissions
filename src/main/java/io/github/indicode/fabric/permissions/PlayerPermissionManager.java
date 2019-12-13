@@ -2,6 +2,7 @@ package io.github.indicode.fabric.permissions;
 
 import blue.endless.jankson.JsonElement;
 import blue.endless.jankson.JsonPrimitive;
+import com.google.common.collect.ImmutableList;
 import io.github.indicode.fabric.tinyconfig.DefaultedJsonArray;
 import io.github.indicode.fabric.tinyconfig.DefaultedJsonObject;
 import net.minecraft.nbt.CompoundTag;
@@ -33,9 +34,18 @@ public class PlayerPermissionManager {
         }
         return false;
     }
+    public ImmutableList<String> getPermissions() {
+        return ImmutableList.copyOf(permissions);
+    }
+    public ImmutableList<String> getRevokedPermissions() {
+        return ImmutableList.copyOf(revokedPermissions);
+    }
     public boolean hasExactPermission(String permission) {
         if (revokedPermissions.contains(permission)) return false;
         return permissions.contains(permission);
+    }
+    public boolean isDeniedPermission(String permission) {
+        return revokedPermissions.contains(permission);
     }
     public PlayerPermissionManager revokePermission(String permission) {
         permissions.remove(permission);

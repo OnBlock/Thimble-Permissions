@@ -1,5 +1,6 @@
 package io.github.indicode.fabric.permissions.command;
 
+import com.google.common.collect.ImmutableList;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.BoolArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
@@ -12,6 +13,7 @@ import com.mojang.brigadier.suggestion.SuggestionProvider;
 import com.mojang.brigadier.tree.ArgumentCommandNode;
 import com.mojang.brigadier.tree.CommandNode;
 import com.mojang.brigadier.tree.LiteralCommandNode;
+import io.github.indicode.fabric.permissions.PlayerPermissionManager;
 import io.github.indicode.fabric.permissions.Thimble;
 import io.github.voidpointerdev.minecraft.offlineinfo.OfflineInfo;
 import net.minecraft.command.arguments.EntityArgumentType;
@@ -150,6 +152,12 @@ public class PermissionCommand {
                         .then(CommandManager.literal("silent")
                                 .executes(context -> resetPermOffline(context, true, "*")))))
         );
+        // List
+        builder.then(CommandManager.literal("list")
+                .requires(source -> Thimble.hasPermissionOrOp(source, "thimble.check", 2) || Thimble.hasPermissionOrOp(source, "thimble.modify", 4))
+                .then(player.createBuilder()
+                        .executes(PermissionCommand::listAllPerms))
+        );
         // Reload
         builder.then(CommandManager.literal("reload")
                 .requires(source -> Thimble.hasPermissionOrOp(source, "thimble.reload", 2))
@@ -163,6 +171,28 @@ public class PermissionCommand {
         LiteralArgumentBuilder<ServerCommandSource> thimble = CommandManager.literal("thimble");
         thimble.redirect(node);
         dispatcher.register(thimble);
+    }
+
+    public static int listAllPerms(CommandContext<ServerCommandSource> context) {
+        UUID playerID = OfflineInfo.getUUID(context, "player");
+        if (playerID == null) {
+            context.getSource().sendFeedback(new LiteralText("That is not a valid player").formatted(Formatting.RED), false);
+            return 0;
+        }
+        String playerName = StringArgumentType.getString(context, "player");
+        context.getSource().sendFeedback(new LiteralText(playerName + "'s Permissions").formatted(Formatting.GOLD), false);
+        PlayerPermissionManager ppm = Thimble.PERMISSIONS.getPlayer(playerID);
+        for (String permission : ppm.getPermissions()) {
+            context.getSource().sendFeedback(new LiteralText("").append(new LiteralText(permission).formatted(Formatting.GREEN)).append(new LiteralText(Thimble.PERMISSIONS.isGrantedByDefault(permission) ? " - Granted by default" : "").formatted(Formatting.AQUA)), false);
+        }
+        ImmutableList<String> revokedPermissions = ppm.getRevokedPermissions();
+        if (Thimble.PERMISSIONS.getDefaultPermission() != null && !revokedPermissions.contains(Thimble.PERMISSIONS.getDefaultPermission())) {
+            context.getSource().sendFeedback(new LiteralText("").append(new LiteralText(Thimble.PERMISSIONS.getDefaultPermission()).formatted(Formatting.GREEN)).append(new LiteralText(" - Defailt permission").formatted(Formatting.AQUA)), false);
+        }
+        for (String permission : revokedPermissions) {
+            context.getSource().sendFeedback(new LiteralText("").append(new LiteralText(permission).formatted(Formatting.DARK_RED)).append(new LiteralText(Thimble.PERMISSIONS.defaultPermissionMatches(permission) ? " - Defailt permission" : Thimble.PERMISSIONS.isGrantedByDefault(permission) ? " - Granted by default" : "").formatted(Formatting.AQUA)), false);
+        }
+        return 1;
     }
 
     public static int checkPerm(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
@@ -187,9 +217,8 @@ public class PermissionCommand {
 
     public static int setPerm(CommandContext<ServerCommandSource> context, boolean enabled, boolean silent, String permission) throws CommandSyntaxException {
         for (ServerPlayerEntity player : EntityArgumentType.getPlayers(context, "players")) {
-            boolean hasPerm = Thimble.PERMISSIONS.getPlayer(player.getGameProfile().getId()).hasExactPermission(permission);
-            if (hasPerm == enabled) {
-                context.getSource().sendFeedback(new LiteralText(player.getGameProfile().getName() + " " + (enabled ? "already has" : "never had") + " the permission \"" + permission + "\"").formatted(Formatting.RED), false);
+            if ((enabled && Thimble.PERMISSIONS.getPlayer(player.getGameProfile().getId()).hasExactPermission(permission)) || (!enabled && Thimble.PERMISSIONS.getPlayer(player.getGameProfile().getId()).isDeniedPermission(permission))) {
+                context.getSource().sendFeedback(new LiteralText(player.getGameProfile().getName() + " " + (enabled ? "already has" : "is already denied") + " the permission \"" + permission + "\"").formatted(Formatting.RED), false);
             } else {
                 context.getSource().sendFeedback(new LiteralText(player.getGameProfile().getName() + " " + (enabled ? "has been granted" : "no longer has") + " the permission \"" + permission + "\"").formatted(Formatting.GREEN), false);
                 context.getSource().getMinecraftServer().sendMessage(new LiteralText("").append(context.getSource().getDisplayName()).append(new LiteralText(" has " + (enabled ? "granted" : "revoked") + " the permission \"" + permission + "\" for player " + player.getGameProfile().getName())));
@@ -215,9 +244,8 @@ public class PermissionCommand {
         }
         String playerName = StringArgumentType.getString(context, "player");
         ServerPlayerEntity playerEntity = OfflineInfo.getPlayerEntity(context, "player");
-        boolean hasPerm = Thimble.PERMISSIONS.getPlayer(playerID).hasExactPermission(permission);
-        if (hasPerm == enabled) {
-            context.getSource().sendFeedback(new LiteralText(playerName + " " + (enabled ? "already has" : "never had") + " the permission \"" + permission + "\"").formatted(Formatting.RED), false);
+        if ((enabled && Thimble.PERMISSIONS.getPlayer(playerID).hasExactPermission(permission)) || (!enabled && Thimble.PERMISSIONS.getPlayer(playerID).isDeniedPermission(permission))) {
+            context.getSource().sendFeedback(new LiteralText(playerName + " " + (enabled ? "already has" : "is already denied") + " the permission \"" + permission + "\"").formatted(Formatting.RED), false);
         } else {
             context.getSource().sendFeedback(new LiteralText(playerName + " " + (enabled ? "has been granted" : "no longer has") + " the permission \"" + permission + "\"").formatted(Formatting.GREEN), false);
             context.getSource().getMinecraftServer().sendMessage(new LiteralText("").append(context.getSource().getDisplayName()).append(new LiteralText(" has " + (enabled ? "granted" : "revoked") + " the permission \"" + permission + "\" for player " + playerName)));
