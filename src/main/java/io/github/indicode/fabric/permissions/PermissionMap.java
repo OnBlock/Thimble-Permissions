@@ -173,7 +173,7 @@ public class PermissionMap {
                     permission.inheritance.addAll(inheritList);
                     for (String inherit : inheritList) {
                         if (!permissionMap.containsKey(inherit) && !existingPermissions.contains(inherit)) {
-                            Thimble.LOGGER.warn(String.format("Permission \"%s\" inherits a nonexistant permission \"%s\"", entry.getKey(), inherit));
+                            Thimble.LOGGER.warn(String.format("Permission \"%s\" inherits an undefiened permission \"%s\"", entry.getKey(), inherit));
                         }
                     }
                 }

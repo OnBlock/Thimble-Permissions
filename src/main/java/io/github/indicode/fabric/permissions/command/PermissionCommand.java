@@ -13,6 +13,7 @@ import com.mojang.brigadier.suggestion.SuggestionProvider;
 import com.mojang.brigadier.tree.ArgumentCommandNode;
 import com.mojang.brigadier.tree.CommandNode;
 import com.mojang.brigadier.tree.LiteralCommandNode;
+import io.github.indicode.fabric.permissions.Permission;
 import io.github.indicode.fabric.permissions.PlayerPermissionManager;
 import io.github.indicode.fabric.permissions.Thimble;
 import io.github.voidpointerdev.minecraft.offlineinfo.OfflineInfo;
@@ -156,7 +157,13 @@ public class PermissionCommand {
         builder.then(CommandManager.literal("list")
                 .requires(source -> Thimble.hasPermissionOrOp(source, "thimble.check", 2) || Thimble.hasPermissionOrOp(source, "thimble.modify", 4))
                 .then(player.createBuilder()
-                        .executes(PermissionCommand::listAllPerms))
+                        .executes(PermissionCommand::listPerms))
+        );
+        // List Child Perms
+        builder.then(CommandManager.literal("list_children")
+                .requires(source -> Thimble.hasPermissionOrOp(source, "thimble.check", 2) || Thimble.hasPermissionOrOp(source, "thimble.modify", 4))
+                .then(permission.createBuilder()
+                        .executes(PermissionCommand::listChildPerms))
         );
         // Reload
         builder.then(CommandManager.literal("reload")
@@ -173,7 +180,7 @@ public class PermissionCommand {
         dispatcher.register(thimble);
     }
 
-    public static int listAllPerms(CommandContext<ServerCommandSource> context) {
+    public static int listPerms(CommandContext<ServerCommandSource> context) {
         UUID playerID = OfflineInfo.getUUID(context, "player");
         if (playerID == null) {
             context.getSource().sendFeedback(new LiteralText("That is not a valid player").formatted(Formatting.RED), false);
@@ -191,6 +198,19 @@ public class PermissionCommand {
         }
         for (String permission : revokedPermissions) {
             context.getSource().sendFeedback(new LiteralText("").append(new LiteralText(permission).formatted(Formatting.DARK_RED)).append(new LiteralText(Thimble.PERMISSIONS.defaultPermissionMatches(permission) ? " - Defailt permission" : Thimble.PERMISSIONS.isGrantedByDefault(permission) ? " - Granted by default" : "").formatted(Formatting.AQUA)), false);
+        }
+        return 1;
+    }
+
+    public static int listChildPerms(CommandContext<ServerCommandSource> context) {
+        String perm = StringArgumentType.getString(context, "permission");
+        context.getSource().sendFeedback(new LiteralText("Child Permissions of " + perm).formatted(Formatting.GOLD), false);
+        for (String permission : Thimble.PERMISSIONS.getRegisteredPermissions()) {
+            if (Thimble.PERMISSIONS.isInherited(perm, permission)) {
+                if (Thimble.PERMISSIONS.isChild(perm, permission)) {
+                    context.getSource().sendFeedback(new LiteralText("").append(new LiteralText(permission).formatted(Formatting.GREEN)).append(new LiteralText(Thimble.PERMISSIONS.isChild(perm, permission) ? " - Child permission" : " - Inherited permission").formatted(Formatting.AQUA)), false);
+                }
+            }
         }
         return 1;
     }
