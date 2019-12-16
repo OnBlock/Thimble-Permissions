@@ -42,6 +42,9 @@ public class PermissionMap {
         if (permission == null || permission.isEmpty()) {
             throw new IllegalArgumentException("Permission cannot be null or empty.");
         }
+        if (permission.endsWith(".")) {
+            throw new IllegalArgumentException("Permission cannot end with a seporator (.)");
+        }
         if (permissionExists(permission)) {
             throw new IllegalStateException(String.format("Permission \"%s\" is already defined."));
         }
