@@ -131,7 +131,7 @@ public class PermissionCommand {
                 ).then(allPermission.createBuilder()
                         .executes(context -> setPermOffline(context, false, false, "*"))
                         .then(CommandManager.literal("silent")
-                                .executes(context -> setPermOffline(context, true, true, "*")))))
+                                .executes(context -> setPermOffline(context, false, true, "*")))))
         );
         // Reset
         builder.then(CommandManager.literal("reset")
