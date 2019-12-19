@@ -10,6 +10,7 @@ import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.StringTag;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
@@ -17,6 +18,7 @@ import java.util.List;
  * @author Indigo Amann
  */
 public class PlayerPermissionManager {
+    protected HashMap<String, PermissionDataManager> specialData = new HashMap<>();
     protected List<String> permissions = new ArrayList<>();
     protected List<String> revokedPermissions = new ArrayList<>();
     public PermissionMap permissionMap;
@@ -49,6 +51,7 @@ public class PlayerPermissionManager {
     }
     public PlayerPermissionManager revokePermission(String permission) {
         permissions.remove(permission);
+        specialData.remove(permission);
         if (!revokedPermissions.contains(permission)) {
             revokedPermissions.add(permission);
         }
@@ -57,11 +60,13 @@ public class PlayerPermissionManager {
     public PlayerPermissionManager resetPermission(String permission) {
         permissions.remove(permission);
         revokedPermissions.remove(permission);
+        specialData.remove(permission);
         return this;
     }
     public PlayerPermissionManager grantPermission(String permission) {
         if (permission == null) return this;
         revokedPermissions.remove(permission);
+        specialData.remove(permission);
         if (permissions.contains(permission)) return this;
         if (!permission.equals("*")) {
             for (Iterator<String> iterator = permissions.iterator(); iterator.hasNext(); ) {
@@ -73,26 +78,32 @@ public class PlayerPermissionManager {
         this.permissions.add(permission);
         return this;
     }
-    @Deprecated
-    public JsonElement toJson() {
-        if (revokedPermissions.isEmpty()) {
-            DefaultedJsonArray permArray = new DefaultedJsonArray();
-            permissions.forEach(permission -> permArray.add(new JsonPrimitive(permission)));
-            return permArray;
-        } else {
-            DefaultedJsonObject jsonObject = new DefaultedJsonObject();
-            DefaultedJsonArray rpermArray = new DefaultedJsonArray();
-            revokedPermissions.forEach(perm -> {
-                if (perm != null) rpermArray.add(new JsonPrimitive(perm));
-            });
-            jsonObject.set("removed_permissions", rpermArray);
-            if (!permissions.isEmpty()) {
-                DefaultedJsonArray groupArray = new DefaultedJsonArray();
-                permissions.forEach(permission -> groupArray.add(new JsonPrimitive(permission)));
-                jsonObject.set("permissions", groupArray);
-            }
-            return jsonObject;
+    public PermissionDataManager getDataManager(String permission) {
+        return specialData.get(permission);
+    }
+    public void setDataManager(String permission, PermissionDataManager manager) {
+        specialData.put(permission, manager);
+    }
+    public PermissionDataManager getOrCreateDataManager(String permission) {
+        PermissionDataManager dm = getDataManager(permission);
+        if (dm == null) {
+            dm = new PermissionDataManager();
+            setDataManager(permission, dm);
         }
+        return dm;
+    }
+    public boolean hasDataManager(String permision) {
+        return getDataManager(permision) != null;
+    }
+    public void setSpecialData(String permission, String key, String value) {
+        getOrCreateDataManager(permission).setData(key, value);
+    }
+    public String getSpecialData(String permission, String key) {
+        PermissionDataManager dm = getDataManager(permission);
+        return dm == null ? null : dm.getData(key);
+    }
+    public boolean hasSpecialData(String permission, String key) {
+        return getSpecialData(permission, key) != null;
     }
     public CompoundTag toNBT() {
         CompoundTag tag = new CompoundTag();
