@@ -101,6 +101,16 @@ public class PlayerPermissionManager {
     }
     public String getSpecialData(String permission, String key) {
         PermissionDataManager dm = getDataManager(permission);
+        if (dm == null) {
+            for (String perm : permissions) {
+                Permission data = Thimble.PERMISSIONS.getPermissionData(perm);
+                if (data != null) {
+                    if (data.inheritance.get(permission) != null) {
+                        dm = data.inheritance.get(permission);
+                    }
+                }
+            }
+        }
         return dm == null ? null : dm.getData(key);
     }
     public boolean hasSpecialData(String permission, String key) {
@@ -141,7 +151,7 @@ public class PlayerPermissionManager {
     protected Tag getPermissionTag(String permission) {
         if (specialData.containsKey(permission)) {
             CompoundTag data = new CompoundTag();
-            data.putString("permission", permission);
+            data.putString("id", permission);
             specialData.get(permission).toNBT(data);
             return data;
         } else {

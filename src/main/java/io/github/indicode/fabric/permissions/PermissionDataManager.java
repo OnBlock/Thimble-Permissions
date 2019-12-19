@@ -1,5 +1,8 @@
 package io.github.indicode.fabric.permissions;
 
+import blue.endless.jankson.JsonElement;
+import blue.endless.jankson.JsonObject;
+import blue.endless.jankson.JsonPrimitive;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.StringTag;
 
@@ -64,6 +67,19 @@ public class PermissionDataManager {
                 String value = dataTag.getString(key);
                 if (value != null) {
                     data.put(key, value);
+                }
+            }
+        }
+    }
+    public void fromJson(JsonObject json) {
+        if (json.containsKey("data")) {
+            JsonElement dataE = json.get("data");
+            if (dataE instanceof JsonObject) {
+                JsonObject dataO = (JsonObject) dataE;
+                for (Map.Entry<String, JsonElement> entry : dataO.entrySet()) {
+                    if (entry.getValue() instanceof JsonPrimitive) {
+                        data.put(entry.getKey(), ((JsonPrimitive) entry.getValue()).asString());
+                    }
                 }
             }
         }
