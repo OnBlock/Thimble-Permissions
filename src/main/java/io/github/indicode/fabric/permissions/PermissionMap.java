@@ -237,28 +237,38 @@ public class PermissionMap {
                         player.setDataManager(perm, dm);
                     } else if (!(removedTag instanceof StringTag)) {
                         Thimble.LOGGER.warn(String.format("A removed permission for player %s exists, but is null. This should never happen.", key));
-                        continue;
+                    } else {
+                        String perm = removedTag.asString();
+                        if (!permissions.contains(perm)) {
+                            Thimble.LOGGER.warn(String.format("Unrecognised removed permission \"%s\" found for player %s", perm, key));
+                        }
+                        player.revokePermission(perm);
                     }
-                    String perm = removedTag.asString();
-                    if (!permissions.contains(perm)) {
-                        Thimble.LOGGER.warn(String.format("Unrecognised removed permission \"%s\" found for player %s", perm, key));
-                    }
-                    player.revokePermission(perm);
                 }
             }
             ListTag granted = (ListTag) entry.get("granted");
             if (granted != null) {
                 for (Tag grantedTag: granted) {
-                    if (!(grantedTag instanceof StringTag)) {
-                        Thimble.LOGGER.warn(String.format("A permission for player %s exists, but is null. This should never happen.", key));
-                        continue;
+                    if (grantedTag instanceof CompoundTag) {
+                        CompoundTag data = (CompoundTag) grantedTag;
+                        String perm = data.getString("permission");
+                        if (!permissions.contains(perm)) {
+                            Thimble.LOGGER.warn(String.format("Unrecognised granted permission \"%s\" found for player %s", perm, key));
+                            continue;
+                        }
+                        player.grantPermission(perm);
+                        PermissionDataManager dm = new PermissionDataManager();
+                        dm.fromTag(data);
+                        player.setDataManager(perm, dm);
+                    } else if (!(grantedTag instanceof StringTag)) {
+                        Thimble.LOGGER.warn(String.format("A granted permission for player %s exists, but is null. This should never happen.", key));
+                    } else {
+                        String perm = grantedTag.asString();
+                        if (!permissions.contains(perm)) {
+                            Thimble.LOGGER.warn(String.format("Unrecognised granted permission \"%s\" found for player %s", perm, key));
+                        }
+                        player.grantPermission(perm);
                     }
-                    String perm = grantedTag.asString();
-                    if (!permissions.contains(perm)) {
-                        Thimble.LOGGER.warn(String.format("Unrecognised permission \"%s\" found for player %s", perm, key));
-                        continue;
-                    }
-                    player.grantPermission(perm);
                 }
             }
         }

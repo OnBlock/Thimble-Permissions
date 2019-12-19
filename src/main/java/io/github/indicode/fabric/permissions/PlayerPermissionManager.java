@@ -8,6 +8,7 @@ import io.github.indicode.fabric.tinyconfig.DefaultedJsonObject;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.StringTag;
+import net.minecraft.nbt.Tag;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -109,15 +110,29 @@ public class PlayerPermissionManager {
         CompoundTag tag = new CompoundTag();
         if (!revokedPermissions.isEmpty()) {
             ListTag removed = new ListTag();
-            revokedPermissions.forEach(permission -> removed.add(StringTag.of(permission)));
+            for (String permission : revokedPermissions) {
+                removed.add(getPermissionTag(permission));
+            }
             tag.put("removed", removed);
         }
         if (!permissions.isEmpty()) {
             ListTag granted = new ListTag();
-            permissions.forEach(permission -> granted.add(StringTag.of(permission)));
+            for (String permission : permissions) {
+                granted.add(getPermissionTag(permission));
+            }
             tag.put("granted", granted);
         }
         return tag;
+    }
+    protected Tag getPermissionTag(String permission) {
+        if (specialData.containsKey(permission)) {
+            CompoundTag data = new CompoundTag();
+            data.putString("permission", permission);
+            specialData.get(permission).toNBT(data);
+            return data;
+        } else {
+            return StringTag.of(permission);
+        }
     }
     @Override
     public String toString() {
