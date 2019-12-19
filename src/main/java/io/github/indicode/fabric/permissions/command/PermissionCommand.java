@@ -267,7 +267,7 @@ public class PermissionCommand {
         } else {
             context.getSource().sendFeedback(new LiteralText(playerName + " " + (enabled ? "has been granted" : "no longer has") + " the permission \"" + permission + "\"").formatted(Formatting.GREEN), false);
             context.getSource().getMinecraftServer().sendMessage(new LiteralText("").append(context.getSource().getDisplayName()).append(new LiteralText(" has " + (enabled ? "granted" : "revoked") + " the permission \"" + permission + "\" for player " + playerName)));
-            if (!silent && playerEntity != null && !context.getSource().getName().equals(playerName) && context.getSource().getPlayer() != null)
+            if (!silent && playerEntity != null && !context.getSource().getName().equals(playerName))
                 playerEntity.sendMessage(new LiteralText(context.getSource().getName() + " " + (enabled ? "has granted you the" : "has revoked your") + " \"" + permission + "\" permission").formatted(enabled ? Formatting.GREEN : Formatting.RED));
             if (enabled) Thimble.PERMISSIONS.getPlayer(playerID).grantPermission(permission);
             else Thimble.PERMISSIONS.getPlayer(playerID).revokePermission(permission);
