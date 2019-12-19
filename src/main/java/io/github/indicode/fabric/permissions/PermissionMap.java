@@ -231,7 +231,6 @@ public class PermissionMap {
                     String perm = removedTag.asString();
                     if (!permissions.contains(perm)) {
                         Thimble.LOGGER.warn(String.format("Unrecognised removed permission \"%s\" found for player %s", perm, key));
-                        continue;
                     }
                     player.resetPermission(perm);
                 }
