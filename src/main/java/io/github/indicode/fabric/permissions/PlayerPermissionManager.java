@@ -10,10 +10,7 @@ import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.StringTag;
 import net.minecraft.nbt.Tag;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 /**
  * @author Indigo Amann
@@ -66,6 +63,9 @@ public class PlayerPermissionManager {
     }
     public PlayerPermissionManager grantPermission(String permission) {
         if (permission == null) return this;
+        if (hasPermissionExpired(permission)) {
+            resetPermission(permission);
+        }
         revokedPermissions.remove(permission);
         specialData.remove(permission);
         if (permissions.contains(permission)) return this;
@@ -106,6 +106,20 @@ public class PlayerPermissionManager {
     public boolean hasSpecialData(String permission, String key) {
         return getSpecialData(permission, key) != null;
     }
+
+    public boolean hasPermissionExpired(String permission) {
+        return hasDataManager(permission) && getDataManager(permission).isExpired();
+    }
+    public void setExpiryDate(String permission, Date expiry) {
+        getOrCreateDataManager(permission).setExpiryDate(expiry);
+    }
+    public Date getExpiryDate(String permission) {
+        return hasDataManager(permission) ? getDataManager(permission).getExpiryDate() : null;
+    }
+    public boolean willExpire(String permission) {
+        return getExpiryDate(permission) != null;
+    }
+
     public CompoundTag toNBT() {
         CompoundTag tag = new CompoundTag();
         if (!revokedPermissions.isEmpty()) {
