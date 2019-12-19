@@ -207,9 +207,7 @@ public class PermissionCommand {
         context.getSource().sendFeedback(new LiteralText("Child Permissions of " + perm).formatted(Formatting.GOLD), false);
         for (String permission : Thimble.PERMISSIONS.getRegisteredPermissions()) {
             if (Thimble.PERMISSIONS.isInherited(perm, permission)) {
-                if (Thimble.PERMISSIONS.isChild(perm, permission)) {
-                    context.getSource().sendFeedback(new LiteralText("").append(new LiteralText(permission).formatted(Formatting.GREEN)).append(new LiteralText(Thimble.PERMISSIONS.isChild(perm, permission) ? " - Child permission" : " - Inherited permission").formatted(Formatting.AQUA)), false);
-                }
+                context.getSource().sendFeedback(new LiteralText("").append(new LiteralText(permission).formatted(Formatting.GREEN)).append(new LiteralText(Thimble.PERMISSIONS.isChild(perm, permission) ? " - Child permission" : " - Inherited permission").formatted(Formatting.AQUA)), false);
             }
         }
         return 1;
