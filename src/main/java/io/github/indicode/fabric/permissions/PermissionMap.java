@@ -224,7 +224,18 @@ public class PermissionMap {
             ListTag removed = (ListTag) entry.get("removed");
             if (removed != null) {
                 for (Tag removedTag: removed) {
-                    if (!(removedTag instanceof StringTag)) {
+                    if (removedTag instanceof CompoundTag) {
+                        CompoundTag data = (CompoundTag) removedTag;
+                        String perm = data.getString("permission");
+                        if (!permissions.contains(perm)) {
+                            Thimble.LOGGER.warn(String.format("Unrecognised removed permission \"%s\" found for player %s", perm, key));
+                            continue;
+                        }
+                        player.revokePermission(perm);
+                        PermissionDataManager dm = new PermissionDataManager();
+                        dm.fromTag(data);
+                        player.setDataManager(perm, dm);
+                    } else if (!(removedTag instanceof StringTag)) {
                         Thimble.LOGGER.warn(String.format("A removed permission for player %s exists, but is null. This should never happen.", key));
                         continue;
                     }
@@ -232,7 +243,7 @@ public class PermissionMap {
                     if (!permissions.contains(perm)) {
                         Thimble.LOGGER.warn(String.format("Unrecognised removed permission \"%s\" found for player %s", perm, key));
                     }
-                    player.resetPermission(perm);
+                    player.revokePermission(perm);
                 }
             }
             ListTag granted = (ListTag) entry.get("granted");
