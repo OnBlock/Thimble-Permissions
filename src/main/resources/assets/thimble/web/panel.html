@@ -48,13 +48,12 @@
         background-color: transparent;
         transition: background-color 0.25s ease;
     }
-    button.dropdown.haschild:after {
+    button.dropdown.haschild > div:after {
         content: '\02795';
-        float: right;
         margin-left: 10px;
         font-size: 13px;
     }
-    button.dropdown.haschild.open:after {
+    button.dropdown.haschild.open > div:after {
         content: '\2796';
     }
     code {
@@ -231,7 +230,7 @@
         attatch.previousElementSibling.classList.add("haschild")
         var button = document.createElement("button")
         button.classList.add("dropdown")
-        button.innerHTML = name
+        button.innerHTML = "<div style=\"display: inline;\"></div>" + name
         var panel = document.createElement("div")
         panel.classList.add("droppanel")
         button.addEventListener("click", function() {
@@ -362,7 +361,11 @@
                 columns[4].onclick = remf
                 markDirty()
             }
-            columns[4].onclick = remf
+            columns[4].onclick = data.deleted ? addf : remf
+            if (data.deleted) {
+                delbttn.classList.remove("minus")
+                delbttn.classList.add("plus")
+            }
             markDirty()
             list.appendChild(permTemp)
         }
