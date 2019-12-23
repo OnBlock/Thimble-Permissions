@@ -270,6 +270,7 @@
             delbttn.onclick = addf
             container.classList.add("deleted")
             sidebuttons[0].style.display = "none"
+            panel.style.display = "none"
         }
         addf = function() {
             delete data.deleted
@@ -278,6 +279,7 @@
             delbttn.onclick = remf
             container.classList.remove("deleted")
             sidebuttons[0].style.display = "inline"
+            panel.style.display = "block"
         }
         delbttn.onclick = data.deleted ? addf : remf
         container.appendChild(sidenode)
