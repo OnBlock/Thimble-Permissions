@@ -29,6 +29,14 @@
         padding-left: 10px;
         /*transition: all 0.5s ease;*/
     }
+    button.hidden {
+        border: none;
+        outline: none;
+        background-color: transparent;
+    }
+    button.minus:after {
+        content: '\2796';
+    }
     button.dropdown {
         border: none;
         outline: none;
@@ -88,7 +96,8 @@
             <th>Permission</th>
             <th>Status</th>
             <th>Expiry</th>
-            <th>Data</th>
+            <th>Contexts</th>
+            <th></th>
         </tr>
     </table>
 </template>
@@ -103,6 +112,9 @@
             <button>Reset</button>
         </td>
         <td></td>
+        <td style="text-align: center;">
+            <button class="hidden minus"></button>
+        </td>
     </tr>
 </template>
 <script>
@@ -243,7 +255,11 @@
         function isModified() {
             return JSON.stringify(data) !== JSON.stringify(original)
         }
-        function addPermToList(data, original) {
+        function remove(template, name) {
+            list.removeChild(template)
+            data[name] = undefined
+        }
+        function addPermToList(name, data, original) {
             var permTemp = document.importNode(document.getElementById("permission-template").content, true)
             var row = permTemp.querySelector("tr")
             function markDirty() {
@@ -303,11 +319,14 @@
                 dts[1].value = original.expires == undefined ? undefined : original.expires.time
                 markTime()
             }
+            columns[4].onclick = function() {
+                remove(row, name)
+            }
             markDirty()
             list.appendChild(permTemp)
         }
         for (var permd in data) {
-            addPermToList(data[permd], original[permd])
+            if (data[permd] != undefined && original[permd] != undefined) addPermToList(permd, data[permd], original[permd])
         }
         content.appendChild(template)
     }
