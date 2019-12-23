@@ -109,7 +109,7 @@
     }
 </style>
 <template id="content-template">
-    <h1></h1>
+    <h1><span style="color: gray;"></span><span></span></h1>
     <table class="permlist" style="width: 100%;">
         <tr>
             <th>Permission</th>
@@ -157,7 +157,7 @@
         return r
     }
     var original = {
-        "foo": {
+        "potatowo": {
             "inherits": {
                 "potato": {
                     "granted": true,
@@ -177,33 +177,35 @@
                     }
                 },
             },
-            "foo.foo": {
-                "inherits": {
-                    "bar.foo": {
-                        "granted": true
-                    }
-                }
-            },
-            "foo.bar": {
-                "inherits": {
-                    "bar.bar": {
-                        "granted": false
-                    },
-                    "bar.foo": {
-                        "granted": true,
-                        "expires": {
-                            "date": "2019-12-25",
-                            "time": "16:20"
+            "foo": {
+                "foo": {
+                    "inherits": {
+                        "bar.foo": {
+                            "granted": true
                         }
-                    },
-                    "foo.bar": {
-                        "granted": false
-                    },
-                    "foo.foo": {
-                        "granted": true,
-                        "expires": {
-                            "date": "2019-12-25",
-                            "time": "16:20"
+                    }
+                },
+                "bar": {
+                    "inherits": {
+                        "bar.bar": {
+                            "granted": false
+                        },
+                        "bar.foo": {
+                            "granted": true,
+                            "expires": {
+                                "date": "2019-12-25",
+                                "time": "16:20"
+                            }
+                        },
+                        "foo.bar": {
+                            "granted": false
+                        },
+                        "foo.foo": {
+                            "granted": true,
+                            "expires": {
+                                "date": "2019-12-25",
+                                "time": "16:20"
+                            }
                         }
                     }
                 }
@@ -231,7 +233,7 @@
     for (var i = 0; i < dropdowns.length; i++) {
         processDropdown(dropdowns[i])
     }
-    function createDropdown(name, data, original, attatch) {
+    function createDropdown(name, parent, data, original, attatch) {
         attatch.previousElementSibling.classList.add("haschild")
         var container = document.createElement("div")
         container.style = "display: flex; flex-direction: row;"
@@ -250,7 +252,7 @@
                     content.style.maxHeight = "100%"
                 }
             }
-            replaceContentPane(name, data.inherits, original.inherits, container)
+            replaceContentPane(name, parent, data.inherits, original.inherits, container)
         })
         container.appendChild(button)
         container.appendChild(document.importNode(document.getElementById("sidebar-template").content, true))
@@ -259,19 +261,21 @@
         if (data.constructor !== [].constructor) {
             for (key in data) {
                 if (key !== "inherits") {
-                    createDropdown(key, data[key], original[key], panel)
+                    createDropdown(key, parent === "" ? name : (parent + "." + name), data[key], original[key], panel)
                 }
             }
         }
         return panel
     }
-    function replaceContentPane(perm, data, original, sidenode) {
+    function replaceContentPane(perm, parent, data, original, sidenode) {
         var content = document.getElementById("content")
         while (content.hasChildNodes()) {
             content.removeChild(content.lastChild)
         }
         var template = document.importNode(document.getElementById("content-template").content, true)
-        template.querySelector("h1").innerHTML = perm
+        var titles = template.querySelectorAll("span")
+        titles[0].innerHTML = parent === "" ? "" : (parent + ".")
+        titles[1].innerHTML = perm
         var list = template.querySelector("table")
         function checkModification() {
             if (data === undefined) {
@@ -399,7 +403,7 @@
         content.appendChild(template)
     }
     for (var perm in current) {
-        createDropdown(perm, current[perm], original[perm], document.getElementById("groups"))
+        createDropdown(perm, "", current[perm], original[perm], document.getElementById("groups"))
     }
     //var drop = createDropdown("foo!", document.getElementById("groups"))
     //createDropdown("what comes after bar??!", createDropdown("bar!", drop))
