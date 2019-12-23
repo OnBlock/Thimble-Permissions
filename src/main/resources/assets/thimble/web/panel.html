@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Thimble Web Panel</title>
+</head>
+<body>
+    <div style="display: flex; flex-direction: row;">
+        <div style="flex-grow: 1; background: rgba(0, 0, 0, 0.158);">
+            <div style="margin: 10px 0 10px 0;"></div>
+            <button class="dropdown" style="font-size: 15px;">Groups</button>
+            <div id="groups">
+            </div>
+            <div style="margin: 10px 0 10px 0;"></div>
+            <button class="dropdown" style="font-size: 15px;">Players</button>
+            <div id="players">
+            </div>
+        </div>
+        <hr style="margin: 0 10px 0 10px">
+        <div style="flex-grow: 5;" id="content">
+            <h1>Hi! I'm empty!</h1>
+        </div>
+    </div>
+</body>
+<style>
+    div.droppanel {
+        overflow: hidden;
+        max-height: 0;
+        padding-left: 10px;
+        /*transition: all 0.5s ease;*/
+    }
+    button.dropdown {
+        border: none;
+        outline: none;
+        width: 100%;
+        text-align: left;
+        background-color: transparent;
+        transition: background-color 0.25s ease;
+    }
+    button.dropdown.haschild:after {
+        content: '\02795';
+        float: right;
+        margin-left: 10px;
+        font-size: 13px;
+    }
+    button.dropdown.haschild.open:after {
+        content: '\2796';
+    }
+    code {
+        /*background-color: rgba(0, 0, 0, 0.349);*/
+        padding: 2.5px;
+    }
+    table.permlist {
+        border-spacing: 0;
+    }
+    table.permlist > th, td {
+        text-align: left;
+        padding: 0 2px;
+        /*border-left: 1px solid black;*/
+        border-right: 1px solid black;
+    }
+    table.permlist tr:nth-child(even) {
+        background-color: rgba(0, 0, 0, 0.178);
+    }
+    table.permlist tr:nth-child(odd) {
+        background-color: rgba(0, 0, 0, 0.055);
+    }
+    table.permlist > tr > td {
+        padding: 10px;
+    }
+    table.permlist > tr {
+        transition: background-color 0.25s ease;
+    }
+    table.permlist > tr:nth-child(even).modified {
+        background-color:rgb(230, 230, 103)
+    }
+    table.permlist > tr:nth-child(odd).modified {
+        background-color:rgb(255, 255, 137)
+    }
+    button.modified {
+        background-color:rgb(255, 255, 137)
+    }
+</style>
+<template id="content-template">
+    <h1></h1>
+    <table class="permlist" style="width: 100%;">
+        <tr>
+            <th>Permission</th>
+            <th>Status</th>
+            <th>Expiry</th>
+            <th>Data</th>
+        </tr>
+    </table>
+</template>
+<template id="permission-template">
+    <tr>
+        <td><code></code></td>
+        <td><code></code></td>
+        <td>
+            <input type="date">
+            <input type="time">
+            <button>Remove</button>
+            <button>Reset</button>
+        </td>
+        <td></td>
+    </tr>
+</template>
+<script>
+    /*var originalData = new Map()
+    var currentData = new Map()
+    var instructions = []
+    function loadDataFromInstructions(instructions) { // TODO: scrap this and use json
+        for (var i = 0; i < instructions.length; i++) {
+            if (instructions[i] === "group") {
+                ++i;
+                var groupMap = new Map()
+                while (i < instructions.length && instructions[i] !== "}}") {
+                    var permission = instructions[i]
+                    var inheritanceMap = new Map()
+                    ++i
+                    while (i < instructions.length && instructions[i] !== "}") {
+                        var inherits = JSON.parse(instructions[i])
+                        inheritanceMap[inherits.name] = inherits
+                        ++i
+                    }
+                    groupMap[permission] = inheritanceMap
+                }
+            }
+        }
+    }*/
+    var original = {
+        "foo": {
+            "inherits": [
+                {
+                    "id": "potato",
+                    "granted": true,
+                    "expires": {
+                        "date": "2019-12-30",
+                        "time": "06:30"
+                    }
+                }
+            ],
+            "foo.foo": [
+                {
+                    "id": "bar.foo",
+                    "granted": true
+                }
+            ],
+            "foo.bar": [
+                {
+                    "id": "bar.bar",
+                    "granted": false
+                },
+                {
+                    "id": "bar.foo",
+                    "granted": true,
+                    "expires": {
+                        "date": "2019-12-25",
+                        "time": "16:20"
+                    }
+                },
+                {
+                    "id": "foo.bar",
+                    "granted": false
+                },
+                {
+                    "id": "foo.foo",
+                    "granted": true,
+                    "expires": {
+                        "date": "2019-12-25",
+                        "time": "16:20"
+                    }
+                }
+            ]
+        }
+    }
+    var current = JSON.parse(JSON.stringify(original))
+
+
+    function processDropdown(elem) {
+        elem.classList.add("dropdown")
+        elem.nextElementSibling.classList.add("droppanel")
+        elem.addEventListener("click", function() {
+            this.classList.toggle("open")
+            
+            var content = this.nextElementSibling
+            if (content.style.maxHeight) {
+                content.style.maxHeight = null
+            } else {
+                content.style.maxHeight = "100%"
+            }
+        })
+    }
+    var dropdowns = document.getElementsByClassName("dropdown")
+    for (var i = 0; i < dropdowns.length; i++) {
+        processDropdown(dropdowns[i])
+    }
+    function createDropdown(name, data, original, attatch) {
+        console.log(name)
+        console.log(attatch)
+        attatch.previousElementSibling.classList.add("haschild")
+        var button = document.createElement("button")
+        button.classList.add("dropdown")
+        button.innerHTML = name
+        var panel = document.createElement("div")
+        panel.classList.add("droppanel")
+        button.addEventListener("click", function() {
+            if (this.classList.contains("haschild")) {
+                this.classList.toggle("open")
+                var content = this.nextElementSibling
+                if (content.style.maxHeight) {
+                    content.style.maxHeight = null
+                } else {
+                    content.style.maxHeight = "100%"
+                }
+            }
+            if (data.constructor === [].constructor) {
+                replaceContentPane(name, data, original, this)
+            } else {
+                replaceContentPane(name, data.inherits, original.inherits, this)
+            }
+        })
+        attatch.appendChild(button)
+        attatch.appendChild(panel)
+        if (data.constructor !== [].constructor) {
+            for (key in data) {
+                if (key !== "inherits") {
+                    console.log(data[key])
+                    createDropdown(key, data[key], original[key], panel)
+                }
+            }
+        }
+        return panel
+    }
+    function replaceContentPane(perm, data, original, sidenode) {
+        var content = document.getElementById("content")
+        while (content.hasChildNodes()) {
+            content.removeChild(content.lastChild)
+        }
+        var template = document.importNode(document.getElementById("content-template").content, true)
+        template.querySelector("h1").innerHTML = perm
+        var list = template.querySelector("table")
+        function isModified() {
+            return JSON.stringify(data) !== JSON.stringify(original)
+        }
+        function addPermToList(data, original) {
+            var permTemp = document.importNode(document.getElementById("permission-template").content, true)
+            var row = permTemp.querySelector("tr")
+            function markDirty() {
+                function setMod(mod) {
+                    if (mod) {
+                        row.classList.add("modified")
+                        sidenode.classList.add("modified")
+                    } else {
+                        row.classList.remove("modified")
+                        if (!isModified()) sidenode.classList.remove("modified")
+                    }
+                }
+                /*if (data.granted != original.granted) {
+                    setMod(true)
+                    return
+                } else if ((data.expires == undefined && original.expires != undefined) || (data.expires != undefined && original.expires == undefined)  ||(data.expires != undefined && original.expires != undefined && (data.expires.time != original.expires.time || data.expires.date != original.expires.date))) {
+                    setMod(true)
+                    return
+                } else {
+                    setMod(false)
+                }*/
+                setMod(JSON.stringify(data) !== JSON.stringify(original))
+            }
+            var columns = permTemp.querySelectorAll("td")
+            var values = permTemp.querySelectorAll("code")
+            values[0].innerHTML = data.id
+            values[1].innerHTML = data.granted ? "granted" : "revoked"
+            values[1].style.color = data.granted ? "green" : "red"
+            row.children[1].onclick = function(event) {
+                data.granted = !data.granted
+                values[1].innerHTML = data.granted ? "granted" : "revoked"
+                values[1].style.color = data.granted ? "green" : "red"
+                markDirty()
+            }
+            var dts = columns[2].children
+            dts[0].value = original.expires == undefined ? undefined : original.expires.date
+            dts[1].value = original.expires == undefined ? undefined : original.expires.time
+            function markTime() {
+                var date = dts[0]
+                var time = dts[1]
+                if (date.value == "" && time.value == "") {
+                    data.expires = undefined
+                } else {
+                    data.expires = {date: date.value, time: time.value}
+                }
+                markDirty()
+            }
+            dts[0].oninput = markTime
+            dts[1].oninput = markTime
+            dts[2].onclick = function() {
+                dts[0].value = undefined
+                dts[1].value = undefined
+                markTime()
+            }
+            dts[3].onclick = function() {
+                dts[0].value = original.expires == undefined ? undefined : original.expires.date
+                dts[1].value = original.expires == undefined ? undefined : original.expires.time
+                markTime()
+            }
+            markDirty()
+            list.appendChild(permTemp)
+        }
+        for (var permd in data) {
+            addPermToList(data[permd], original[permd])
+        }
+        content.appendChild(template)
+    }
+    for (var perm in current) {
+        createDropdown(perm, current[perm], original[perm], document.getElementById("groups"))
+    }
+    //var drop = createDropdown("foo!", document.getElementById("groups"))
+    //createDropdown("what comes after bar??!", createDropdown("bar!", drop))
+</script>
+</html>
