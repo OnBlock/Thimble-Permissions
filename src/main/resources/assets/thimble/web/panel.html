@@ -288,19 +288,12 @@
             sidenode.classList.remove("modified")
             if (detail != null) sidenode.classList.add(detail)
         }
-        function remove(template, name) {
-            delete data[name]
-        }
-        function add(name, json) {
-            data[name] = json
-        }
         function addPermToList(name, data, original) {
-            var deleted = false
             var permTemp = document.importNode(document.getElementById("permission-template").content, true)
             var row = permTemp.querySelector("tr")
             function markDirty() {
                 function checkModification() {
-                    if (deleted) {
+                    if (data.deleted) {
                         return "deleted"
                     } else if (original === undefined) {
                         return "new"
@@ -356,16 +349,14 @@
             var delbttn = columns[4].querySelector("button")
             var addf = undefined
             var remf = function() {
-                remove(row, name)
-                deleted = true
+                data.deleted = true
                 delbttn.classList.remove("minus")
                 delbttn.classList.add("plus")
                 columns[4].onclick = addf
                 markDirty()
             }
             addf = function() {
-                deleted = false
-                add(name, data)
+                delete data.deleted
                 delbttn.classList.add("minus")
                 delbttn.classList.remove("plus")
                 columns[4].onclick = remf
@@ -381,9 +372,13 @@
             if (content == "") {
                 alert("Permission cannot be empty") // Todo: handle other bad cases
             } else {
-                var json = {granted: true}
-                data[content] = json
-                addPermToList(content, json, undefined)
+                if (Object.keys(data).includes(content)) {
+                    alert("That permission is already in the list")
+                } else {
+                    var json = {granted: true}
+                    data[content] = json
+                    addPermToList(content, json, undefined)
+                }
             }
         }
         for (var permd in data) {
