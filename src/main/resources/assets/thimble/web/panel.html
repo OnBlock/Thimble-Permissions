@@ -37,6 +37,9 @@
     button.minus:after {
         content: '\2796';
     }
+    button.plus:after {
+        content: '\2795';
+    }
     button.dropdown {
         border: none;
         outline: none;
@@ -100,6 +103,10 @@
             <th></th>
         </tr>
     </table>
+    <div class="inheritadd" style="display: flex; flex-direction: row;">
+        <button class="hidden plus"></button>
+        <input type="search">
+    </div>
 </template>
 <template id="permission-template">
     <tr>
@@ -208,8 +215,6 @@
         processDropdown(dropdowns[i])
     }
     function createDropdown(name, data, original, attatch) {
-        console.log(name)
-        console.log(attatch)
         attatch.previousElementSibling.classList.add("haschild")
         var button = document.createElement("button")
         button.classList.add("dropdown")
@@ -237,7 +242,6 @@
         if (data.constructor !== [].constructor) {
             for (key in data) {
                 if (key !== "inherits") {
-                    console.log(data[key])
                     createDropdown(key, data[key], original[key], panel)
                 }
             }
@@ -255,11 +259,13 @@
         function isModified() {
             return JSON.stringify(data) !== JSON.stringify(original)
         }
-        function remove(template, name) {
+        function remove(template, idx) {
             list.removeChild(template)
-            data[name] = undefined
+            data[idx] = undefined
+            console.log(data)
+            console.log(original)
         }
-        function addPermToList(name, data, original) {
+        function addPermToList(idx, data, original) {
             var permTemp = document.importNode(document.getElementById("permission-template").content, true)
             var row = permTemp.querySelector("tr")
             function markDirty() {
@@ -295,8 +301,8 @@
                 markDirty()
             }
             var dts = columns[2].children
-            dts[0].value = original.expires == undefined ? undefined : original.expires.date
-            dts[1].value = original.expires == undefined ? undefined : original.expires.time
+            dts[0].value = original === undefined ? undefined : original.expires === undefined ? undefined : original.expires.date
+            dts[1].value = original === undefined ? undefined : original.expires === undefined ? undefined : original.expires.time
             function markTime() {
                 var date = dts[0]
                 var time = dts[1]
@@ -315,16 +321,30 @@
                 markTime()
             }
             dts[3].onclick = function() {
-                dts[0].value = original.expires == undefined ? undefined : original.expires.date
-                dts[1].value = original.expires == undefined ? undefined : original.expires.time
+                dts[0].value = original === undefined ? undefined : original.expires === undefined ? undefined : original.expires.date
+                dts[1].value = original === undefined ? undefined : original.expires === undefined ? undefined : original.expires.time
                 markTime()
             }
             columns[4].onclick = function() {
-                remove(row, name)
+                remove(row, idx)
                 if (isModified()) sidenode.classList.add("modified")
+                else sidenode.classList.remove("modified")
             }
             markDirty()
             list.appendChild(permTemp)
+        }
+        var newpermin = template.querySelector(".inheritadd").querySelector("input")
+        template.querySelector(".inheritadd").querySelector("button").onclick = function() {
+            var content = newpermin.value
+            if (content == "") {
+                alert("Permission cannot be empty") // Todo: handle other bad cases
+            } else {
+                var json = {id: content, granted: true}
+                var len = data.length;
+                console.log("len is " + len)
+                data[len] = json
+                addPermToList(len, json, undefined)
+            }
         }
         for (var permd in data) {
             if (data[permd] != undefined && original[permd] != undefined) addPermToList(permd, data[permd], original[permd])
