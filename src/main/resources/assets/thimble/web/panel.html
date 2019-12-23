@@ -38,7 +38,7 @@
         content: '\2796';
     }
     button.plus:after {
-        content: '\2795';
+        content: '\02795';
     }
     button.dropdown {
         border: none;
@@ -88,8 +88,26 @@
     table.permlist > tr:nth-child(odd).modified {
         background-color:rgb(255, 255, 137)
     }
+    table.permlist > tr:nth-child(even).new {
+        background-color:rgba(83, 214, 116, 0.541)
+    }
+    table.permlist > tr:nth-child(odd).new {
+        background-color:rgba(39, 155, 68, 0.541)
+    }
+    table.permlist > tr:nth-child(even).deleted {
+        background-color:rgba(192, 69, 69, 0.664)
+    }
+    table.permlist > tr:nth-child(odd).deleted {
+        background-color:rgba(161, 38, 38, 0.664)
+    }
     button.modified {
         background-color:rgb(255, 255, 137)
+    }
+    button.new {
+        background-color:rgba(90, 231, 125, 0.541)
+    }
+    button.deleted {
+        background-color:rgba(192, 69, 69, 0.664)
     }
 </style>
 <template id="content-template">
@@ -100,7 +118,7 @@
             <th>Status</th>
             <th>Expiry</th>
             <th>Contexts</th>
-            <th></th>
+            <th>Delete</th>
         </tr>
     </table>
     <div class="inheritadd" style="display: flex; flex-direction: row;">
@@ -125,72 +143,67 @@
     </tr>
 </template>
 <script>
-    /*var originalData = new Map()
-    var currentData = new Map()
-    var instructions = []
-    function loadDataFromInstructions(instructions) { // TODO: scrap this and use json
-        for (var i = 0; i < instructions.length; i++) {
-            if (instructions[i] === "group") {
-                ++i;
-                var groupMap = new Map()
-                while (i < instructions.length && instructions[i] !== "}}") {
-                    var permission = instructions[i]
-                    var inheritanceMap = new Map()
-                    ++i
-                    while (i < instructions.length && instructions[i] !== "}") {
-                        var inherits = JSON.parse(instructions[i])
-                        inheritanceMap[inherits.name] = inherits
-                        ++i
-                    }
-                    groupMap[permission] = inheritanceMap
-                }
+    function ddconcat(a, b) {
+        var r = [].concat(a)
+        for (var val in b) {
+            if (!r.includes(b[val])) {
+                r.push(b[val])
             }
         }
-    }*/
+        return r
+    }
     var original = {
         "foo": {
-            "inherits": [
-                {
-                    "id": "potato",
+            "inherits": {
+                "potato": {
                     "granted": true,
                     "expires": {
                         "date": "2019-12-30",
                         "time": "06:30"
                     }
-                }
-            ],
-            "foo.foo": [
-                {
-                    "id": "bar.foo",
-                    "granted": true
-                }
-            ],
-            "foo.bar": [
-                {
-                    "id": "bar.bar",
-                    "granted": false
                 },
-                {
-                    "id": "bar.foo",
+                "potat.bar": {
+                        "granted": false
+                },
+                "potat.foo": {
                     "granted": true,
                     "expires": {
                         "date": "2019-12-25",
                         "time": "16:20"
                     }
                 },
-                {
-                    "id": "foo.bar",
-                    "granted": false
-                },
-                {
-                    "id": "foo.foo",
-                    "granted": true,
-                    "expires": {
-                        "date": "2019-12-25",
-                        "time": "16:20"
+            },
+            "foo.foo": {
+                "inherits": {
+                    "bar.foo": {
+                        "granted": true
                     }
                 }
-            ]
+            },
+            "foo.bar": {
+                "inherits": {
+                    "bar.bar": {
+                        "granted": false
+                    },
+                    "bar.foo": {
+                        "granted": true,
+                        "expires": {
+                            "date": "2019-12-25",
+                            "time": "16:20"
+                        }
+                    },
+                    "foo.bar": {
+                        "granted": false
+                    },
+                    "foo.foo": {
+                        "granted": true,
+                        "expires": {
+                            "date": "2019-12-25",
+                            "time": "16:20"
+                        }
+                    }
+                }
+            }
         }
     }
     var current = JSON.parse(JSON.stringify(original))
@@ -231,11 +244,7 @@
                     content.style.maxHeight = "100%"
                 }
             }
-            if (data.constructor === [].constructor) {
-                replaceContentPane(name, data, original, this)
-            } else {
-                replaceContentPane(name, data.inherits, original.inherits, this)
-            }
+            replaceContentPane(name, data.inherits, original.inherits, this)
         })
         attatch.appendChild(button)
         attatch.appendChild(panel)
@@ -256,42 +265,61 @@
         var template = document.importNode(document.getElementById("content-template").content, true)
         template.querySelector("h1").innerHTML = perm
         var list = template.querySelector("table")
-        function isModified() {
-            return JSON.stringify(data) !== JSON.stringify(original)
+        function checkModification() {
+            if (data === undefined) {
+                return "deleted"
+            } else if (original === undefined) {
+                return "new"
+            } else {
+                var keys = ddconcat(Object.keys(data), Object.keys(original))
+                for (var namei in keys) {
+                    var name = keys[namei]
+                    if (data[name] === undefined || original[name] === undefined || JSON.stringify(data[name]) !== JSON.stringify(original[name])) {
+                        return "modified"
+                    }
+                }
+            }
+            return null
         }
-        function remove(template, idx) {
-            list.removeChild(template)
-            data[idx] = undefined
-            console.log(data)
-            console.log(original)
+        function displayModification() {
+            var detail = checkModification()
+            sidenode.classList.remove("deleted")
+            sidenode.classList.remove("new")
+            sidenode.classList.remove("modified")
+            if (detail != null) sidenode.classList.add(detail)
         }
-        function addPermToList(idx, data, original) {
+        function remove(template, name) {
+            delete data[name]
+        }
+        function add(name, json) {
+            data[name] = json
+        }
+        function addPermToList(name, data, original) {
+            var deleted = false
             var permTemp = document.importNode(document.getElementById("permission-template").content, true)
             var row = permTemp.querySelector("tr")
             function markDirty() {
-                function setMod(mod) {
-                    if (mod) {
-                        row.classList.add("modified")
-                        sidenode.classList.add("modified")
+                function checkModification() {
+                    if (deleted) {
+                        return "deleted"
+                    } else if (original === undefined) {
+                        return "new"
+                    } else if (JSON.stringify(data) !== JSON.stringify(original)) {
+                        return "modified"
                     } else {
-                        row.classList.remove("modified")
-                        if (!isModified()) sidenode.classList.remove("modified")
+                        return null
                     }
                 }
-                /*if (data.granted != original.granted) {
-                    setMod(true)
-                    return
-                } else if ((data.expires == undefined && original.expires != undefined) || (data.expires != undefined && original.expires == undefined)  ||(data.expires != undefined && original.expires != undefined && (data.expires.time != original.expires.time || data.expires.date != original.expires.date))) {
-                    setMod(true)
-                    return
-                } else {
-                    setMod(false)
-                }*/
-                setMod(JSON.stringify(data) !== JSON.stringify(original))
+                var detail = checkModification()
+                row.classList.remove("deleted")
+                row.classList.remove("new")
+                row.classList.remove("modified")
+                if (detail != null) row.classList.add(detail)
+                displayModification()
             }
             var columns = permTemp.querySelectorAll("td")
             var values = permTemp.querySelectorAll("code")
-            values[0].innerHTML = data.id
+            values[0].innerHTML = name
             values[1].innerHTML = data.granted ? "granted" : "revoked"
             values[1].style.color = data.granted ? "green" : "red"
             row.children[1].onclick = function(event) {
@@ -307,7 +335,7 @@
                 var date = dts[0]
                 var time = dts[1]
                 if (date.value == "" && time.value == "") {
-                    data.expires = undefined
+                    delete data.expires
                 } else {
                     data.expires = {date: date.value, time: time.value}
                 }
@@ -325,11 +353,25 @@
                 dts[1].value = original === undefined ? undefined : original.expires === undefined ? undefined : original.expires.time
                 markTime()
             }
-            columns[4].onclick = function() {
-                remove(row, idx)
-                if (isModified()) sidenode.classList.add("modified")
-                else sidenode.classList.remove("modified")
+            var delbttn = columns[4].querySelector("button")
+            var addf = undefined
+            var remf = function() {
+                remove(row, name)
+                deleted = true
+                delbttn.classList.remove("minus")
+                delbttn.classList.add("plus")
+                columns[4].onclick = addf
+                markDirty()
             }
+            addf = function() {
+                deleted = false
+                add(name, data)
+                delbttn.classList.add("minus")
+                delbttn.classList.remove("plus")
+                columns[4].onclick = remf
+                markDirty()
+            }
+            columns[4].onclick = remf
             markDirty()
             list.appendChild(permTemp)
         }
@@ -339,15 +381,13 @@
             if (content == "") {
                 alert("Permission cannot be empty") // Todo: handle other bad cases
             } else {
-                var json = {id: content, granted: true}
-                var len = data.length;
-                console.log("len is " + len)
-                data[len] = json
-                addPermToList(len, json, undefined)
+                var json = {granted: true}
+                data[content] = json
+                addPermToList(content, json, undefined)
             }
         }
         for (var permd in data) {
-            if (data[permd] != undefined && original[permd] != undefined) addPermToList(permd, data[permd], original[permd])
+            addPermToList(permd, data[permd], original[permd])
         }
         content.appendChild(template)
     }
