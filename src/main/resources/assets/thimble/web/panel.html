@@ -321,6 +321,7 @@
             }
             columns[4].onclick = function() {
                 remove(row, name)
+                if (isModified()) sidenode.classList.add("modified")
             }
             markDirty()
             list.appendChild(permTemp)
