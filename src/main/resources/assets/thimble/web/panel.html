@@ -258,7 +258,29 @@
             replaceContentPane(name, parent, data.inherits, original.inherits, container)
         })
         container.appendChild(button)
-        container.appendChild(document.importNode(document.getElementById("sidebar-template").content, true))
+        var sidenode = document.importNode(document.getElementById("sidebar-template").content, true)
+        var sidediv = sidenode.querySelector("div")
+        var sidebuttons = sidenode.querySelectorAll("button")
+        var delbttn = sidebuttons[1]
+        var addf = undefined
+        var remf = function() {
+            data.deleted = true
+            delbttn.classList.remove("minus")
+            delbttn.classList.add("plus")
+            delbttn.onclick = addf
+            container.classList.add("deleted")
+            sidebuttons[0].style.display = "none"
+        }
+        addf = function() {
+            delete data.deleted
+            delbttn.classList.add("minus")
+            delbttn.classList.remove("plus")
+            delbttn.onclick = remf
+            container.classList.remove("deleted")
+            sidebuttons[0].style.display = "inline"
+        }
+        delbttn.onclick = data.deleted ? addf : remf
+        container.appendChild(sidenode)
         attatch.appendChild(container)
         attatch.appendChild(panel)
         if (data.constructor !== [].constructor) {
