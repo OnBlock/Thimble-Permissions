@@ -26,7 +26,7 @@
     div.droppanel {
         overflow: hidden;
         max-height: 0;
-        padding-left: 10px;
+        padding-left: 20px;
         /*transition: all 0.5s ease;*/
     }
     button.hidden {
@@ -48,12 +48,11 @@
         background-color: transparent;
         transition: background-color 0.25s ease;
     }
-    button.dropdown.haschild > div:after {
+    div.haschild > button.dropdown > div.expand:after {
         content: '\02795';
-        margin-left: 10px;
         font-size: 13px;
     }
-    button.dropdown.haschild.open > div:after {
+    div.haschild > button.dropdown.open > div.expand:after {
         content: '\2796';
     }
     code {
@@ -99,13 +98,13 @@
     table.permlist > tr:nth-child(odd).deleted {
         background-color:rgba(161, 38, 38, 0.664)
     }
-    button.modified {
+    div.modified {
         background-color:rgb(255, 255, 137)
     }
-    button.new {
+    div.new {
         background-color:rgba(90, 231, 125, 0.541)
     }
-    button.deleted {
+    div.deleted {
         background-color:rgba(192, 69, 69, 0.664)
     }
 </style>
@@ -141,6 +140,12 @@
         </td>
     </tr>
 </template>
+<template id="sidebar-template" >
+    <div style="display: flex; flex-direction: row; float: right;">
+        <button class="hidden plus" onclick="alert('hi 1')"></button>
+        <button class="hidden minus" onclick="alert('hi 2')"></button>
+    </div>
+</template>
 <script>
     function ddconcat(a, b) {
         var r = [].concat(a)
@@ -162,7 +167,7 @@
                     }
                 },
                 "potat.bar": {
-                        "granted": false
+                    "granted": false
                 },
                 "potat.foo": {
                     "granted": true,
@@ -228,24 +233,28 @@
     }
     function createDropdown(name, data, original, attatch) {
         attatch.previousElementSibling.classList.add("haschild")
+        var container = document.createElement("div")
+        container.style = "display: flex; flex-direction: row;"
         var button = document.createElement("button")
         button.classList.add("dropdown")
-        button.innerHTML = "<div style=\"display: inline;\"></div>" + name
+        button.innerHTML = "<div style=\"display: inline;\" class=\"expand\"></div>" + name
         var panel = document.createElement("div")
         panel.classList.add("droppanel")
         button.addEventListener("click", function() {
-            if (this.classList.contains("haschild")) {
+            if (container.classList.contains("haschild")) {
                 this.classList.toggle("open")
-                var content = this.nextElementSibling
+                var content = panel
                 if (content.style.maxHeight) {
                     content.style.maxHeight = null
                 } else {
                     content.style.maxHeight = "100%"
                 }
             }
-            replaceContentPane(name, data.inherits, original.inherits, this)
+            replaceContentPane(name, data.inherits, original.inherits, container)
         })
-        attatch.appendChild(button)
+        container.appendChild(button)
+        container.appendChild(document.importNode(document.getElementById("sidebar-template").content, true))
+        attatch.appendChild(container)
         attatch.appendChild(panel)
         if (data.constructor !== [].constructor) {
             for (key in data) {
