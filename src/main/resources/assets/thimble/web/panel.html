@@ -314,7 +314,7 @@
                 for (var namei in keys) {
                     var name = keys[namei]
                     if (data[name] === undefined || original[name] === undefined || JSON.stringify(data[name]) !== JSON.stringify(original[name])) {
-                        return "modified"
+                        if (!data[name].deleted) return "modified"
                     }
                 }
             }
