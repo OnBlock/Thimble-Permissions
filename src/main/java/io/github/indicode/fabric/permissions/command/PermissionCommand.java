@@ -1,6 +1,7 @@
 package io.github.indicode.fabric.permissions.command;
 
 import com.google.common.collect.ImmutableList;
+import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.BoolArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
@@ -9,17 +10,12 @@ import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
-import com.mojang.brigadier.suggestion.Suggestions;
-import com.mojang.brigadier.suggestion.SuggestionsBuilder;
-import com.mojang.brigadier.tree.LiteralCommandNode;
-import com.mojang.brigadier.tree.ArgumentCommandNode;
 import com.mojang.brigadier.tree.CommandNode;
 import com.mojang.brigadier.tree.LiteralCommandNode;
-import io.github.indicode.fabric.permissions.Permission;
 import io.github.indicode.fabric.permissions.PlayerPermissionManager;
 import io.github.indicode.fabric.permissions.Thimble;
-import io.github.voidpointerdev.minecraft.offlineinfo.OfflineInfo;
 import net.minecraft.command.arguments.EntityArgumentType;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.CommandSource;
@@ -30,8 +26,6 @@ import net.minecraft.util.Formatting;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
-import java.util.concurrent.CompletableFuture;
 import java.util.UUID;
 import java.util.function.Predicate;
 
@@ -40,7 +34,7 @@ import java.util.function.Predicate;
  * @author Indigo Amann
  */
 public class PermissionCommand {
-    public static final SuggestionProvider SUGGESTIONS_BUILDER = (source, builder) -> {
+    public static final SuggestionProvider<ServerCommandSource> SUGGESTIONS_BUILDER = (source, builder) -> {
         Thimble.PERMISSIONS.getRegisteredPermissions().forEach(it -> {
             String[] inputted = builder.getRemaining().split("[.]");
             String[] perm = it.split("[.]");
@@ -60,12 +54,16 @@ public class PermissionCommand {
         });
         return builder.buildFuture();
     };
+    public static final SuggestionProvider<ServerCommandSource> PLAYER_SUGGESTIONS = (source, builder) -> {
+        return CommandSource.suggestMatching(new ArrayList<>(Arrays.asList(source.getSource().getMinecraftServer().getPlayerManager().getPlayerNames())), builder);
+    };
+
 
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
-        CommandNode permission = permissionArgumentBuilder("permission").build();
-        CommandNode allPermission = CommandManager.literal("*").build();
-        CommandNode players = CommandManager.argument("players", EntityArgumentType.players()).build();
-        CommandNode player = OfflineInfo.offlinePlayerArgumentBuilder("player").build();
+        CommandNode<ServerCommandSource> permission = permissionArgumentBuilder("permission").build();
+        CommandNode<ServerCommandSource> allPermission = CommandManager.literal("*").build();
+        CommandNode<ServerCommandSource> players = CommandManager.argument("players", EntityArgumentType.players()).build();
+        CommandNode<ServerCommandSource> player = CommandManager.argument("player", StringArgumentType.string()).suggests(PLAYER_SUGGESTIONS).build();
         LiteralArgumentBuilder<ServerCommandSource> builder = CommandManager.literal("permission").requires(source -> Thimble.hasPermissionOrOp(source, "thimble.reload", 2) || Thimble.hasPermissionOrOp(source, "thimble.check", 2) || Thimble.hasPermissionOrOp(source, "thimble.modify", 4));
 
         // Check
@@ -188,8 +186,8 @@ public class PermissionCommand {
         dispatcher.register(thimble);
     }
 
-    public static int listPerms(CommandContext<ServerCommandSource> context) {
-        UUID playerID = OfflineInfo.getUUID(context, "player");
+    public static int listPerms(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+        UUID playerID = getUUIDAndValidate(context, "player");
         if (playerID == null) {
             context.getSource().sendFeedback(new LiteralText("That is not a valid player").formatted(Formatting.RED), false);
             return 0;
@@ -226,7 +224,7 @@ public class PermissionCommand {
     }
 
     public static int checkPerm(CommandContext<ServerCommandSource> context, String permission) throws CommandSyntaxException {
-        UUID playerID = OfflineInfo.getUUID(context, "player");
+        UUID playerID = getUUIDAndValidate(context, "player");
         if (playerID == null) {
             context.getSource().sendFeedback(new LiteralText("That is not a valid player").formatted(Formatting.RED), false);
             return 0;
@@ -263,13 +261,14 @@ public class PermissionCommand {
     }
 
     public static int setPermOffline(CommandContext<ServerCommandSource> context, boolean enabled, boolean silent, String permission) throws CommandSyntaxException {
-        UUID playerID = OfflineInfo.getUUID(context, "player");
+        UUID playerID = getUUIDAndValidate(context, "player");
         if (playerID == null) {
             context.getSource().sendFeedback(new LiteralText("That is not a valid player").formatted(Formatting.RED), false);
             return 0;
         }
         String playerName = StringArgumentType.getString(context, "player");
-        ServerPlayerEntity playerEntity = OfflineInfo.getPlayerEntity(context, "player");
+        ServerPlayerEntity playerEntity = getPlayerAndValidate(context, "player");
+
         if ((enabled && Thimble.PERMISSIONS.getPlayer(playerID).hasExactPermission(permission)) || (!enabled && Thimble.PERMISSIONS.getPlayer(playerID).isDeniedPermission(permission))) {
             context.getSource().sendFeedback(new LiteralText(playerName + " " + (enabled ? "already has" : "is already denied") + " the permission \"" + permission + "\"").formatted(Formatting.RED), false);
         } else {
@@ -305,13 +304,9 @@ public class PermissionCommand {
     }
 
     public static int resetPermOffline(CommandContext<ServerCommandSource> context, boolean silent, String permission) throws CommandSyntaxException {
-        UUID playerID = OfflineInfo.getUUID(context, "player");
-        if (playerID == null) {
-            context.getSource().sendFeedback(new LiteralText("That is not a valid player").formatted(Formatting.RED), false);
-            return 0;
-        }
+        UUID playerID = getUUIDAndValidate(context, "player");
         String playerName = StringArgumentType.getString(context, "player");
-        ServerPlayerEntity playerEntity = OfflineInfo.getPlayerEntity(context, "player");
+        ServerPlayerEntity playerEntity = getPlayerAndValidate(context, "player");
         context.getSource().sendFeedback(new LiteralText(playerName + "'s \"" + permission + "\" permission has been reset").formatted(Formatting.GREEN), false);
         context.getSource().getMinecraftServer().sendMessage(new LiteralText("").append(context.getSource().getDisplayName()).append(new LiteralText(" has reset the permission \"" + permission + "\" for player " + playerName)));
         if (!silent && !context.getSource().getName().equals(playerName) && context.getSource().getPlayer() != null)
@@ -321,9 +316,26 @@ public class PermissionCommand {
         return 1;
     }
 
-    public static ArgumentBuilder permissionArgumentBuilder(String name) {
+    public static ArgumentBuilder<ServerCommandSource, ?> permissionArgumentBuilder(String name) {
         RequiredArgumentBuilder<ServerCommandSource, String> builder = RequiredArgumentBuilder.argument(name, StringArgumentType.word());
         builder.suggests(SUGGESTIONS_BUILDER);
         return builder;
+    }
+
+    private static ServerPlayerEntity getPlayerAndValidate(CommandContext<ServerCommandSource> context, String arg) throws CommandSyntaxException {
+        ServerPlayerEntity playerEntity = context.getSource().getMinecraftServer().getPlayerManager().getPlayer(getUUIDAndValidate(context, "player"));
+        if (playerEntity == null) {
+            throw new SimpleCommandExceptionType(new LiteralText("Cannot find the player!")).create();
+        }
+        return playerEntity;
+    }
+    private static UUID getUUIDAndValidate(CommandContext<ServerCommandSource> context, String arg) throws CommandSyntaxException {
+        GameProfile profile = getProfile(context, arg);
+        if (profile == null) throw new SimpleCommandExceptionType(new LiteralText("Cannot find that user!")).create();
+        return profile.getId();
+    }
+
+    private static GameProfile getProfile(CommandContext<ServerCommandSource> context, String arg) {
+        return context.getSource().getMinecraftServer().getUserCache().findByName(StringArgumentType.getString(context, arg));
     }
 }

@@ -6,7 +6,8 @@
   "name": "Thimble Permissions",
   "description": "Thimbles exist so you dont prick yourself. This exists so others don't prick you.",
   "authors": [
-    "Indicode"
+    "Indicode",
+    "Maintained By CODY_AI"
   ],
   "contact": {
     "homepage": "https://fabricmc.net/",
@@ -14,7 +15,6 @@
   },
 
   "license": "CC0-1.0",
-  "icon": "assets/thimble/icon.png",
 
   "environment": "*",
   "entrypoints": {
