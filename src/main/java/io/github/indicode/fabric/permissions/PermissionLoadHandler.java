@@ -1,14 +1,12 @@
 package io.github.indicode.fabric.permissions;
 
 import blue.endless.jankson.Jankson;
-import blue.endless.jankson.JsonGrammar;
 import blue.endless.jankson.impl.SyntaxError;
 import io.github.cottonmc.jankson.JanksonFactory;
 import io.github.indicode.fabric.tinyconfig.DefaultedJsonObject;
 import io.github.indicode.fabric.worlddata.NBTWorldData;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.util.Pair;
 
 import java.io.File;
 import java.io.IOException;

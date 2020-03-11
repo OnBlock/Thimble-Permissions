@@ -25,7 +25,7 @@ dependencies {
 
 
 	modImplementation "com.github.voidpointerdev:TinyConfig:${project.tiny_config_version}"//"io.github.indicode.fabric:tinyconfig:${project.tiny_config_version}"
-	//modImplementation "com.github.voidpointerdev:WorldDataLib:${project.worlddatalib_version}"
+	modImplementation "com.github.OnBlock:WorldDataLib:${project.worlddatalib_version}"
 	//modImplementation "com.github.voidpointerdev:OfflineInfo:${project.offlineinfo_version}"
 	//include "com.github.indi-code:TinyConfig:${project.tiny_config_version}"//"io.github.indicode.fabric:tinyconfig:${project.tiny_config_version}"
 }
