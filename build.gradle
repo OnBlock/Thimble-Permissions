@@ -23,14 +23,11 @@ dependencies {
 	mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
 	modCompile "net.fabricmc:fabric-loader:${project.loader_version}"
 
-	// Fabric API. This is technically optional, but you probably want it anyway.
 
-	modImplementation "com.github.indi-code:TinyConfig:${project.tiny_config_version}"//"io.github.indicode.fabric:tinyconfig:${project.tiny_config_version}"
-	modImplementation "com.github.indi-code:WorldDataLib:${project.worlddatalib_version}"
+	modImplementation "com.github.voidpointerdev:TinyConfig:${project.tiny_config_version}"//"io.github.indicode.fabric:tinyconfig:${project.tiny_config_version}"
+	modImplementation "com.github.voidpointerdev:WorldDataLib:${project.worlddatalib_version}"
+	modImplementation "com.github.voidpointerdev:OfflineInfo:${project.offlineinfo_version}"
 	//include "com.github.indi-code:TinyConfig:${project.tiny_config_version}"//"io.github.indicode.fabric:tinyconfig:${project.tiny_config_version}"
-
-	// PSA: Some older mods, compiled on Loom 0.2.1, might have outdated Maven POMs.
-	// You may need to force-disable transitiveness on them.
 }
 
 processResources {
