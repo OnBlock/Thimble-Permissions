@@ -24,31 +24,35 @@ public class PermissionLoadHandler extends NBTWorldData {
 
     @Override
     public void onWorldLoad(File file, File file1) {
-        File perms = new File(file, "permissions.json");
-        Map<UUID, PlayerPermissionManager> oldmap = Thimble.PERMISSIONS.permissionMap;
-        Thimble.PERMISSIONS = new PermissionMap();
-        Thimble.LOGGER.debug("Running mod permission injectors");
-        Thimble.permissionWriters.forEach(consumer -> consumer.accept(Thimble.PERMISSIONS, server));
-        Thimble.LOGGER.debug("Loading permissions json");
         try {
-            Jankson jankson = JanksonFactory.createJankson();
-            if (!perms.exists()) {
-                Thimble.LOGGER.warn("permissions.json does not exist");
-            } else {
-                Thimble.PERMISSIONS.permissionsFromJson(DefaultedJsonObject.of(jankson.load(perms)));
-            }
+            File perms = new File(file, "permissions.json");
+            Map<UUID, PlayerPermissionManager> oldmap = Thimble.PERMISSIONS.permissionMap;
+            Thimble.PERMISSIONS = new PermissionMap();
+            Thimble.LOGGER.debug("Running mod permission injectors");
+            Thimble.permissionWriters.forEach(consumer -> consumer.accept(Thimble.PERMISSIONS, server));
+            Thimble.LOGGER.debug("Loading permissions json");
+            try {
+                Jankson jankson = JanksonFactory.createJankson();
+                if (!perms.exists()) {
+                    Thimble.LOGGER.warn("permissions.json does not exist");
+                } else {
+                    Thimble.PERMISSIONS.permissionsFromJson(DefaultedJsonObject.of(jankson.load(perms)));
+                }
 
-        } catch (SyntaxError | IOException syntaxError) {
-            Thimble.LOGGER.error("Could not load permissions file", syntaxError);
-            System.exit(1);
+            } catch (SyntaxError | IOException syntaxError) {
+                Thimble.LOGGER.error("Could not load permissions file", syntaxError);
+                System.exit(1);
+            }
+            Thimble.LOGGER.debug("Loading player permissions");
+            if (reloading) {
+                Thimble.PERMISSIONS.permissionMap = oldmap;
+            } else {
+                super.onWorldLoad(file, file1);
+            }
+            reloading = true;
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-        Thimble.LOGGER.debug("Loading player permissions");
-        if (reloading) {
-            Thimble.PERMISSIONS.permissionMap = oldmap;
-        } else {
-            super.onWorldLoad(file, file1);
-        }
-        reloading = true;
     }
 
     @Override
@@ -58,6 +62,10 @@ public class PermissionLoadHandler extends NBTWorldData {
 
     @Override
     public void fromNBT(CompoundTag compoundTag) {
-        Thimble.PERMISSIONS.readPlayersFromTag(compoundTag);
+        try {
+            Thimble.PERMISSIONS.readPlayersFromTag(compoundTag);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }

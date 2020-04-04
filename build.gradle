@@ -23,7 +23,6 @@ dependencies {
 	mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
 	modCompile "net.fabricmc:fabric-loader:${project.loader_version}"
 
-
 	modImplementation "com.github.voidpointerdev:TinyConfig:${project.tiny_config_version}"//"io.github.indicode.fabric:tinyconfig:${project.tiny_config_version}"
 	modImplementation "com.github.OnBlock:WorldDataLib:${project.worlddatalib_version}"
 	//modImplementation "com.github.voidpointerdev:OfflineInfo:${project.offlineinfo_version}"
