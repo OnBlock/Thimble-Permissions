@@ -246,7 +246,7 @@ public class PermissionCommand {
                 context.getSource().sendFeedback(new LiteralText(player.getGameProfile().getName() + " " + (enabled ? "already has" : "is already denied") + " the permission \"" + permission + "\"").formatted(Formatting.RED), false);
             } else {
                 context.getSource().sendFeedback(new LiteralText(player.getGameProfile().getName() + " " + (enabled ? "has been granted" : "no longer has") + " the permission \"" + permission + "\"").formatted(Formatting.GREEN), false);
-                context.getSource().getMinecraftServer().sendSystemMessage(new LiteralText("").append(context.getSource().getDisplayName()).append(new LiteralText(" has " + (enabled ? "granted" : "revoked") + " the permission \"" + permission + "\" for player " + player.getGameProfile().getName())), Util.field_25140);
+                context.getSource().getMinecraftServer().sendSystemMessage(new LiteralText("").append(context.getSource().getDisplayName()).append(new LiteralText(" has " + (enabled ? "granted" : "revoked") + " the permission \"" + permission + "\" for player " + player.getGameProfile().getName())), Util.NIL_UUID);
                 if (!silent && !context.getSource().getName().equals(player.getGameProfile().getName()))
                     player.sendMessage(new LiteralText(context.getSource().getName() + " " + (enabled ? "has granted you the" : "has revoked your") + " \"" + permission + "\" permission").formatted(enabled ? Formatting.GREEN : Formatting.RED), false);
                 if (enabled) Thimble.PERMISSIONS.getPlayer(player.getGameProfile().getId()).grantPermission(permission);
@@ -274,7 +274,7 @@ public class PermissionCommand {
             context.getSource().sendFeedback(new LiteralText(playerName + " " + (enabled ? "already has" : "is already denied") + " the permission \"" + permission + "\"").formatted(Formatting.RED), false);
         } else {
             context.getSource().sendFeedback(new LiteralText(playerName + " " + (enabled ? "has been granted" : "no longer has") + " the permission \"" + permission + "\"").formatted(Formatting.GREEN), false);
-            context.getSource().getMinecraftServer().sendSystemMessage(new LiteralText("").append(context.getSource().getDisplayName()).append(new LiteralText(" has " + (enabled ? "granted" : "revoked") + " the permission \"" + permission + "\" for player " + playerName)), Util.field_25140);
+            context.getSource().getMinecraftServer().sendSystemMessage(new LiteralText("").append(context.getSource().getDisplayName()).append(new LiteralText(" has " + (enabled ? "granted" : "revoked") + " the permission \"" + permission + "\" for player " + playerName)), Util.NIL_UUID);
             if (!silent && playerEntity != null && !context.getSource().getName().equals(playerName))
                 playerEntity.sendMessage(new LiteralText(context.getSource().getName() + " " + (enabled ? "has granted you the" : "has revoked your") + " \"" + permission + "\" permission").formatted(enabled ? Formatting.GREEN : Formatting.RED), false);
             if (enabled) Thimble.PERMISSIONS.getPlayer(playerID).grantPermission(permission);
@@ -291,7 +291,7 @@ public class PermissionCommand {
     public static int resetPerm(CommandContext<ServerCommandSource> context, boolean silent, String permission) throws CommandSyntaxException {
         for (ServerPlayerEntity player : EntityArgumentType.getPlayers(context, "players")) {
             context.getSource().sendFeedback(new LiteralText(player.getGameProfile().getName() + "'s \"" + permission + "\" permission has been reset").formatted(Formatting.GREEN), false);
-            context.getSource().getMinecraftServer().sendSystemMessage(new LiteralText("").append(context.getSource().getDisplayName()).append(new LiteralText(" has reset the permission \"" + permission + "\" for player " + player.getGameProfile().getName())), Util.field_25140);
+            context.getSource().getMinecraftServer().sendSystemMessage(new LiteralText("").append(context.getSource().getDisplayName()).append(new LiteralText(" has reset the permission \"" + permission + "\" for player " + player.getGameProfile().getName())), Util.NIL_UUID);
             if (!silent && !context.getSource().getName().equals(player.getGameProfile().getName()))
                 player.sendMessage(new LiteralText(context.getSource().getName() + " has reset your \"" + permission + "\" permission").formatted(Formatting.YELLOW), false);
             Thimble.PERMISSIONS.getPlayer(player.getGameProfile().getId()).resetPermission(permission);
@@ -309,7 +309,7 @@ public class PermissionCommand {
         String playerName = StringArgumentType.getString(context, "player");
         ServerPlayerEntity playerEntity = getPlayerAndValidate(context, "player");
         context.getSource().sendFeedback(new LiteralText(playerName + "'s \"" + permission + "\" permission has been reset").formatted(Formatting.GREEN), false);
-        context.getSource().getMinecraftServer().sendSystemMessage(new LiteralText("").append(context.getSource().getDisplayName()).append(new LiteralText(" has reset the permission \"" + permission + "\" for player " + playerName)), Util.field_25140);
+        context.getSource().getMinecraftServer().sendSystemMessage(new LiteralText("").append(context.getSource().getDisplayName()).append(new LiteralText(" has reset the permission \"" + permission + "\" for player " + playerName)), Util.NIL_UUID);
         if (!silent && !context.getSource().getName().equals(playerName) && context.getSource().getPlayer() != null)
             playerEntity.sendMessage(new LiteralText(context.getSource().getName() + " has reset your \"" + permission + "\" permission").formatted(Formatting.YELLOW), false);
         Thimble.PERMISSIONS.getPlayer(playerID).resetPermission(permission);
