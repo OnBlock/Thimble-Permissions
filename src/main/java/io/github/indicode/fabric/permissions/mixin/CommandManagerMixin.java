@@ -18,7 +18,7 @@ public class CommandManagerMixin {
     @Shadow
     private CommandDispatcher<ServerCommandSource> dispatcher;
     @Inject(method = "<init>", at = @At("RETURN"))
-    public void addCommand(CommandManager.class_5364 arg, CallbackInfo ci) {
+    public void addCommand(CommandManager.RegistrationEnvironment environment, CallbackInfo ci) {
         PermissionCommand.register(dispatcher);
     }
 }
